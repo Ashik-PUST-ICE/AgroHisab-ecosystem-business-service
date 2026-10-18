@@ -1,0 +1,3 @@
+name: fieldvisit-ecosystem-business-service
+php: '8.2'
+secured: true
