@@ -4,6 +4,7 @@ namespace App\Services\Business\Shipment;
 
 use App\Models\Business\Aratdar;
 use App\Models\Business\PurchaseItem;
+use App\Models\Business\Settlement;
 use App\Models\Business\Shipment;
 use App\Models\Business\ShipmentItem;
 use App\Models\Business\ShipmentSale;
@@ -91,7 +92,7 @@ class ShipmentService
 
     public function show(Shipment $shipment): Shipment
     {
-        return $shipment->load(['aratdar', 'transporter', 'market', 'items.product', 'items.unit']);
+        return $shipment->load(['aratdar', 'transporter', 'market', 'items.product', 'items.unit', 'settlement']);
     }
 
     public function update(Shipment $shipment, array $data): Shipment
@@ -213,7 +214,6 @@ class ShipmentService
                     'shortage_weight' => $shortage,
                 ]);
 
-                // Credit stock at destination arat market
                 StockMovement::create([
                     'product_id'        => $shipmentItem->product_id,
                     'market_id'         => $shipment->market_id,
@@ -227,7 +227,6 @@ class ShipmentService
                     'created_by'        => authId(),
                 ]);
 
-                // Record shortage/damage if any
                 if ($shortage > 0) {
                     StockMovement::create([
                         'product_id'        => $shipmentItem->product_id,
@@ -437,7 +436,6 @@ class ShipmentService
             $discountAmount = (float) ($data['discount_amount'] ?? 0);
             $netAmount = max(0, round($grossAmount - $discountAmount, 2));
 
-            // Dynamic Commission Computation from active Aratdar agreement or explicit override
             $aratdar = $shipment->aratdar ?: Aratdar::find($shipment->aratdar_id);
 
             $commissionType = isset($data['commission_type'])
@@ -484,7 +482,6 @@ class ShipmentService
                 'created_by'        => authId(),
             ]);
 
-            // Deduct stock at Arat location
             StockMovement::create([
                 'product_id'        => $sale->product_id,
                 'market_id'         => $shipment->market_id,
@@ -498,7 +495,6 @@ class ShipmentService
                 'created_by'        => authId(),
             ]);
 
-            // Shift shipment to Selling status if not already
             if ($shipment->status === SHIPMENT_STATUS_RECEIVED) {
                 $shipment->update(['status' => SHIPMENT_STATUS_SELLING]);
             }
@@ -678,6 +674,58 @@ class ShipmentService
         ];
     }
 
+    public function settle(Shipment $shipment, array $data = []): Settlement
+    {
+        if ($shipment->status === SHIPMENT_STATUS_SETTLED) {
+            throw ValidationException::withMessages([
+                'shipment' => ['This shipment has already been finalized and settled.'],
+            ]);
+        }
+
+        $preview = $this->getSettlementPreview($shipment);
+
+        return DB::transaction(function () use ($shipment, $preview, $data) {
+            $settlementNumber = $this->generateSettlementNumber();
+            $settlementDate   = !empty($data['settlement_date'])
+                ? Carbon::parse($data['settlement_date'])->toDateString()
+                : Carbon::now()->toDateString();
+
+            $settlement = Settlement::create([
+                'settlement_number'     => $settlementNumber,
+                'shipment_id'           => $shipment->id,
+                'aratdar_id'            => $shipment->aratdar_id,
+                'settlement_date'       => $settlementDate,
+                'gross_sales'           => $preview['sales_summary']['gross_sales'],
+                'sale_discounts'        => 0,
+                'net_sales'             => $preview['sales_summary']['net_sales_proceeds'] + $preview['sales_summary']['commission_amount'],
+                'commission_amount'     => $preview['sales_summary']['commission_amount'],
+                'owner_freight'         => $preview['freight_summary']['owner_freight_expense'],
+                'aratdar_freight'       => $preview['freight_summary']['aratdar_freight_deduction'],
+                'other_deductions'      => (float) ($data['other_deductions'] ?? 0),
+                'expected_net_proceeds' => $preview['remittance_reconciliation']['expected_net_proceeds'],
+                'remitted_amount'       => $preview['remittance_reconciliation']['total_remitted_amount'],
+                'outstanding_balance'   => $preview['remittance_reconciliation']['outstanding_receivable'],
+                'allocated_cogs'        => $preview['profit_and_loss']['allocated_cogs_sold_stock'],
+                'realized_profit'       => $preview['profit_and_loss']['realized_profit_or_loss'] - (float) ($data['other_deductions'] ?? 0),
+                'status'                => SETTLEMENT_STATUS_APPROVED,
+                'notes'                 => $data['notes'] ?? null,
+                'approved_by'           => authId(),
+                'approved_at'           => Carbon::now(),
+            ]);
+
+            $shipment->update([
+                'status' => SHIPMENT_STATUS_SETTLED,
+            ]);
+
+            return $settlement->load(['shipment', 'aratdar']);
+        });
+    }
+
+    public function getSettlement(Shipment $shipment): ?Settlement
+    {
+        return $shipment->settlement?->load(['shipment', 'aratdar']);
+    }
+
     protected function generateShipmentNumber(): string
     {
         $prefix = 'SHP-' . Carbon::now()->format('Ymd') . '-';
@@ -705,6 +753,23 @@ class ShipmentService
         $nextSeq = 1;
         if ($latest) {
             $parts = explode('-', $latest->sale_number);
+            $seq = (int) end($parts);
+            $nextSeq = $seq + 1;
+        }
+
+        return $prefix . str_pad((string) $nextSeq, 4, '0', STR_PAD_LEFT);
+    }
+
+    protected function generateSettlementNumber(): string
+    {
+        $prefix = 'SET-' . Carbon::now()->format('Ymd') . '-';
+        $latest = Settlement::where('settlement_number', 'like', "{$prefix}%")
+            ->orderBy('id', 'desc')
+            ->first();
+
+        $nextSeq = 1;
+        if ($latest) {
+            $parts = explode('-', $latest->settlement_number);
             $seq = (int) end($parts);
             $nextSeq = $seq + 1;
         }

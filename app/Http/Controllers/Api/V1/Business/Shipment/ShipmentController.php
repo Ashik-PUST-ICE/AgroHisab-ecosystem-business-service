@@ -7,6 +7,7 @@ use App\Http\Requests\Business\Shipment\DispatchRequest;
 use App\Http\Requests\Business\Shipment\GoodsReceiptRequest;
 use App\Http\Requests\Business\Shipment\ShipmentRequest;
 use App\Http\Requests\Business\Shipment\ShipmentSaleRequest;
+use App\Http\Resources\Business\Shipment\SettlementResource;
 use App\Http\Resources\Business\Shipment\ShipmentResource;
 use App\Http\Resources\Business\Shipment\ShipmentSaleResource;
 use App\Models\Business\Shipment;
@@ -24,7 +25,7 @@ class ShipmentController extends Controller
     {
         return $this->handleRequest(function () use ($request) {
             $shipments = $this->shipmentService->list(
-                $request->only(['status', 'aratdar_id', 'transporter_id', 'search', 'per_page'])
+                $request->only(['status', 'aratdar_id', 'transporter_id', 'from_date', 'to_date', 'search', 'per_page'])
             );
 
             return ApiResponse::success(ShipmentResource::collection($shipments), 'Shipments retrieved successfully');
@@ -132,6 +133,27 @@ class ShipmentController extends Controller
             $preview = $this->shipmentService->getSettlementPreview($shipment);
 
             return ApiResponse::success($preview, 'Consignment settlement preview calculated successfully');
+        });
+    }
+
+    public function settle(Request $request, Shipment $shipment)
+    {
+        return $this->handleRequest(function () use ($request, $shipment) {
+            $settlement = $this->shipmentService->settle($shipment, $request->all());
+
+            return ApiResponse::success(new SettlementResource($settlement), 'Shipment settlement locked and approved successfully', 201);
+        });
+    }
+
+    public function settlement(Shipment $shipment)
+    {
+        return $this->handleRequest(function () use ($shipment) {
+            $settlement = $this->shipmentService->getSettlement($shipment);
+
+            return ApiResponse::success(
+                $settlement ? new SettlementResource($settlement) : null,
+                $settlement ? 'Settlement retrieved successfully' : 'No settlement found for this shipment'
+            );
         });
     }
 }

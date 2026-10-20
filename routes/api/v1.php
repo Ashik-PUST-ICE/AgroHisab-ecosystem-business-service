@@ -2,12 +2,14 @@
 
 use App\Http\Controllers\Api\V1\Business\Account\AccountController;
 use App\Http\Controllers\Api\V1\Business\Aratdar\AratdarController;
+use App\Http\Controllers\Api\V1\Business\Dashboard\DashboardController;
 use App\Http\Controllers\Api\V1\Business\ExpenseCategory\ExpenseCategoryController;
 use App\Http\Controllers\Api\V1\Business\Market\MarketController;
 use App\Http\Controllers\Api\V1\Business\Payment\AratdarPaymentController;
 use App\Http\Controllers\Api\V1\Business\ProductCategory\ProductCategoryController;
 use App\Http\Controllers\Api\V1\Business\ProductController;
 use App\Http\Controllers\Api\V1\Business\Purchase\PurchaseController;
+use App\Http\Controllers\Api\V1\Business\Report\ReportController;
 use App\Http\Controllers\Api\V1\Business\Shipment\ShipmentController;
 use App\Http\Controllers\Api\V1\Business\Supplier\SupplierController;
 use App\Http\Controllers\Api\V1\Business\Transporter\TransporterController;
@@ -119,7 +121,7 @@ Route::middleware('auth.jwt')->group(function () {
         Route::post('{purchase}/payments', [PurchaseController::class, 'storePayment']);
     });
 
-    // API 10: Shipments + Dispatch + Goods Receipt + Challan + Sales + Stock Balance + Settlement Preview
+    // API 10: Shipments + Dispatch + Goods Receipt + Challan + Sales + Stock Balance + Settlement Preview + Settlement
     Route::prefix('shipments')->group(function () {
         Route::get('/', [ShipmentController::class, 'index']);
         Route::post('/', [ShipmentController::class, 'store']);
@@ -134,6 +136,8 @@ Route::middleware('auth.jwt')->group(function () {
         Route::post('{shipment}/sales', [ShipmentController::class, 'storeSale']);
         Route::get('{shipment}/stock', [ShipmentController::class, 'stock']);
         Route::get('{shipment}/settlement-preview', [ShipmentController::class, 'settlementPreview']);
+        Route::post('{shipment}/settle', [ShipmentController::class, 'settle']);
+        Route::get('{shipment}/settlement', [ShipmentController::class, 'settlement']);
     });
 
     // API 11: Aratdar Remittances & Allocations
@@ -142,5 +146,15 @@ Route::middleware('auth.jwt')->group(function () {
         Route::post('aratdar-remittance', [AratdarPaymentController::class, 'store']);
         Route::get('aratdar-remittance/{remittance}', [AratdarPaymentController::class, 'show']);
         Route::post('{remittance}/allocate', [AratdarPaymentController::class, 'allocate']);
+    });
+
+    // API 12: Dashboard Overview Metrics
+    Route::prefix('dashboard')->group(function () {
+        Route::get('metrics', [DashboardController::class, 'metrics']);
+    });
+
+    // API 13: Reports (Profitability, etc.)
+    Route::prefix('reports')->group(function () {
+        Route::get('profitability', [ReportController::class, 'profitability']);
     });
 });

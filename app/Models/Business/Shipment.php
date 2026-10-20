@@ -5,6 +5,7 @@ namespace App\Models\Business;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -52,6 +53,11 @@ class Shipment extends Model
     public function allocations(): HasMany
     {
         return $this->hasMany(RemittanceAllocation::class);
+    }
+
+    public function settlement(): HasOne
+    {
+        return $this->hasOne(Settlement::class);
     }
 
     public function stockMovements(): MorphMany
