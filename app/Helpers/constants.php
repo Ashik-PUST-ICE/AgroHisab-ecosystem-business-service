@@ -168,3 +168,32 @@ if (!function_exists('commission_type_label')) {
         return $labels[$type] ?? 'Unknown';
     }
 }
+
+if (!function_exists('market_type_label')) {
+    function market_type_label(int|null $type): string
+    {
+        $labels = [
+            MARKET_SOURCE      => __('Source'),
+            MARKET_DESTINATION => __('Destination'),
+            MARKET_BOTH        => __('Both'),
+        ];
+
+        return $labels[$type] ?? 'Unknown';
+    }
+}
+
+if (!function_exists('account_type_label')) {
+    function account_type_label(int|null $type): string
+    {
+        $labels = [
+            ACCOUNT_CASH   => __('Cash'),
+            ACCOUNT_BANK   => __('Bank'),
+            ACCOUNT_BKASH  => __('bKash'),
+            ACCOUNT_NAGAD  => __('Nagad'),
+            ACCOUNT_ROCKET => __('Rocket'),
+            ACCOUNT_OTHER  => __('Other'),
+        ];
+
+        return $labels[$type] ?? 'Unknown';
+    }
+}

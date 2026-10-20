@@ -1,6 +1,8 @@
-﻿<?php
+<?php
 
+use App\Http\Controllers\Api\V1\Business\Account\AccountController;
 use App\Http\Controllers\Api\V1\Business\Aratdar\AratdarController;
+use App\Http\Controllers\Api\V1\Business\Market\MarketController;
 use App\Http\Controllers\Api\V1\Business\ProductCategory\ProductCategoryController;
 use App\Http\Controllers\Api\V1\Business\ProductController;
 use App\Http\Controllers\Api\V1\Business\Supplier\SupplierController;
@@ -61,5 +63,23 @@ Route::middleware('auth.jwt')->group(function () {
         Route::get('{aratdar}', [AratdarController::class, 'show']);
         Route::put('{aratdar}', [AratdarController::class, 'update']);
         Route::delete('{aratdar}', [AratdarController::class, 'destroy']);
+    });
+
+    // API 5: Markets
+    Route::prefix('markets')->group(function () {
+        Route::get('/', [MarketController::class, 'index']);
+        Route::post('/', [MarketController::class, 'store']);
+        Route::get('{market}', [MarketController::class, 'show']);
+        Route::put('{market}', [MarketController::class, 'update']);
+        Route::delete('{market}', [MarketController::class, 'destroy']);
+    });
+
+    // API 6: Financial Accounts
+    Route::prefix('accounts')->group(function () {
+        Route::get('/', [AccountController::class, 'index']);
+        Route::post('/', [AccountController::class, 'store']);
+        Route::get('{account}', [AccountController::class, 'show']);
+        Route::put('{account}', [AccountController::class, 'update']);
+        Route::delete('{account}', [AccountController::class, 'destroy']);
     });
 });
