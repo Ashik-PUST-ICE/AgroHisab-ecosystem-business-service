@@ -216,3 +216,18 @@ if (!function_exists('purchase_status_label')) {
         return $labels[$status] ?? 'Unknown';
     }
 }
+// Supplier Payment Statuses
+const SUPPLIER_PAYMENT_STATUS_PAID      = 1;
+const SUPPLIER_PAYMENT_STATUS_PARTIAL   = 2;
+
+if (!function_exists('supplier_payment_status_label')) {
+    function supplier_payment_status_label(int|null $status): string
+    {
+        $labels = [
+            SUPPLIER_PAYMENT_STATUS_PAID    => __('Paid'),
+            SUPPLIER_PAYMENT_STATUS_PARTIAL => __('Partial'),
+        ];
+
+        return $labels[$status] ?? 'Unknown';
+    }
+}

@@ -4,15 +4,21 @@ namespace App\Http\Controllers\Api\V1\Business\Purchase;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Business\Purchase\PurchaseRequest;
+use App\Http\Requests\Business\Purchase\SupplierPaymentRequest;
 use App\Http\Resources\Business\Purchase\PurchaseResource;
+use App\Http\Resources\Business\Purchase\SupplierPaymentResource;
 use App\Models\Business\Purchase;
 use App\Services\Applications\Api\ApiResponse;
 use App\Services\Business\Purchase\PurchaseService;
+use App\Services\Business\Purchase\SupplierPaymentService;
 use Illuminate\Http\Request;
 
 class PurchaseController extends Controller
 {
-    public function __construct(protected PurchaseService $purchaseService) {}
+    public function __construct(
+        protected PurchaseService $purchaseService,
+        protected SupplierPaymentService $supplierPaymentService
+    ) {}
 
     public function index(Request $request)
     {
@@ -67,6 +73,24 @@ class PurchaseController extends Controller
             $purchase = $this->purchaseService->receive($purchase, $request->all());
 
             return ApiResponse::success(new PurchaseResource($purchase), 'Purchase stock received and movements recorded successfully');
+        });
+    }
+
+    public function payments(Request $request, Purchase $purchase)
+    {
+        return $this->handleRequest(function () use ($purchase) {
+            $payments = $this->supplierPaymentService->index($purchase);
+
+            return ApiResponse::success(SupplierPaymentResource::collection($payments), 'Supplier payments retrieved successfully');
+        });
+    }
+
+    public function storePayment(SupplierPaymentRequest $request, Purchase $purchase)
+    {
+        return $this->handleRequest(function () use ($request, $purchase) {
+            $payment = $this->supplierPaymentService->store($purchase, $request->validated());
+
+            return ApiResponse::success(new SupplierPaymentResource($payment), 'Supplier payment recorded successfully', 201);
         });
     }
 }

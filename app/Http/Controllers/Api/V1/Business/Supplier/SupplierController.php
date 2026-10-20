@@ -7,12 +7,16 @@ use App\Http\Requests\Business\Supplier\SupplierRequest;
 use App\Http\Resources\Business\Supplier\SupplierResource;
 use App\Models\Business\Supplier;
 use App\Services\Applications\Api\ApiResponse;
+use App\Services\Business\Supplier\SupplierLedgerService;
 use App\Services\Business\Supplier\SupplierService;
 use Illuminate\Http\Request;
 
 class SupplierController extends Controller
 {
-    public function __construct(protected SupplierService $supplierService) {}
+    public function __construct(
+        protected SupplierService $supplierService,
+        protected SupplierLedgerService $supplierLedgerService
+    ) {}
 
     public function index(Request $request)
     {
@@ -58,6 +62,18 @@ class SupplierController extends Controller
             $this->supplierService->destroy($supplier);
 
             return ApiResponse::success(null, 'Supplier deleted successfully');
+        });
+    }
+
+    public function ledger(Request $request, Supplier $supplier)
+    {
+        return $this->handleRequest(function () use ($request, $supplier) {
+            $ledger = $this->supplierLedgerService->getLedger(
+                $supplier,
+                $request->only(['from_date', 'to_date'])
+            );
+
+            return ApiResponse::success($ledger, 'Supplier ledger retrieved successfully');
         });
     }
 }

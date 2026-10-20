@@ -50,16 +50,17 @@ Route::middleware('auth.jwt')->group(function () {
         Route::delete('{product}', [ProductController::class, 'destroy']);
     });
 
-    // API 3: Suppliers
+    // API 3: Suppliers + Ledger
     Route::prefix('suppliers')->group(function () {
         Route::get('/', [SupplierController::class, 'index']);
         Route::post('/', [SupplierController::class, 'store']);
         Route::get('{supplier}', [SupplierController::class, 'show']);
         Route::put('{supplier}', [SupplierController::class, 'update']);
         Route::delete('{supplier}', [SupplierController::class, 'destroy']);
+        Route::get('{supplier}/ledger', [SupplierController::class, 'ledger']);
     });
 
-    // API 4: Aratdars (Commission Agents)
+    // API 4: Aratdars
     Route::prefix('aratdars')->group(function () {
         Route::get('/', [AratdarController::class, 'index']);
         Route::post('/', [AratdarController::class, 'store']);
@@ -104,7 +105,7 @@ Route::middleware('auth.jwt')->group(function () {
         Route::delete('{transporter}', [TransporterController::class, 'destroy']);
     });
 
-    // API 9: Purchases & Purchase Stock Receipt
+    // API 9: Purchases + Stock Receipt + Supplier Payments
     Route::prefix('purchases')->group(function () {
         Route::get('/', [PurchaseController::class, 'index']);
         Route::post('/', [PurchaseController::class, 'store']);
@@ -112,5 +113,7 @@ Route::middleware('auth.jwt')->group(function () {
         Route::put('{purchase}', [PurchaseController::class, 'update']);
         Route::delete('{purchase}', [PurchaseController::class, 'destroy']);
         Route::post('{purchase}/receive', [PurchaseController::class, 'receive']);
+        Route::get('{purchase}/payments', [PurchaseController::class, 'payments']);
+        Route::post('{purchase}/payments', [PurchaseController::class, 'storePayment']);
     });
 });
