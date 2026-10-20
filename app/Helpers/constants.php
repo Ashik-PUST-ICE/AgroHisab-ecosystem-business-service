@@ -280,3 +280,19 @@ if (!function_exists('stock_movement_type_label')) {
         return $labels[$type] ?? 'Unknown';
     }
 }
+
+
+if (!function_exists('stock_loss_type_label')) {
+    function stock_loss_type_label(int $type): string
+    {
+        $labels = [
+            1 => 'Spoilage / Rotten (পচন)',
+            2 => 'Weight Loss / Drying (শুকিয়ে ওজন হ্রাস)',
+            3 => 'Damage / Breakage (ক্ষতি বা নষ্ট)',
+            4 => 'Sorting Waste (বাছাই বর্জ্য)',
+            5 => 'Shortage (ঘাটতি)',
+            6 => 'Count Reconciliation (গণনা সমন্বয়)',
+        ];
+        return $labels[$type] ?? 'Unknown';
+    }
+}
