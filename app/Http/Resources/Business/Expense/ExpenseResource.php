@@ -14,6 +14,8 @@ class ExpenseResource extends JsonResource
             'expense_number'      => $this->expense_number,
             'expense_category_id' => $this->expense_category_id,
             'category_name'       => $this->category?->name,
+            'purchase_id'         => $this->purchase_id,
+            'purchase_number'     => $this->purchase?->purchase_number,
             'shipment_id'         => $this->shipment_id,
             'shipment_number'     => $this->shipment?->shipment_number,
             'account_id'          => $this->account_id,

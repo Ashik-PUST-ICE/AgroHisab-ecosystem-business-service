@@ -15,6 +15,7 @@ class ExpenseRequest extends FormRequest
     {
         return [
             'expense_category_id' => ['required', 'integer', 'exists:expense_categories,id'],
+            'purchase_id'         => ['nullable', 'integer', 'exists:purchases,id'],
             'shipment_id'         => ['nullable', 'integer', 'exists:shipments,id'],
             'account_id'          => ['nullable', 'integer', 'exists:accounts,id'],
             'title'               => ['required', 'string', 'max:255'],

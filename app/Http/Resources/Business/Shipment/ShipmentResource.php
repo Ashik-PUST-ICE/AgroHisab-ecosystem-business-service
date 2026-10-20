@@ -26,6 +26,7 @@ class ShipmentResource extends JsonResource
             'status'                => (int) $this->status,
             'status_label'          => shipment_status_label($this->status),
             'notes'                 => $this->notes,
+            'expense_breakdown'     => $this->expense_breakdown ?? [],
             'items'                 => ShipmentItemResource::collection($this->whenLoaded('items')),
             'created_at'            => $this->created_at?->toDateTimeString(),
             'updated_at'            => $this->updated_at?->toDateTimeString(),

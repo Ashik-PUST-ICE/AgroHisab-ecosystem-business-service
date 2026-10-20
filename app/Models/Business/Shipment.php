@@ -22,6 +22,7 @@ class Shipment extends Model
             'expected_arrival_date' => 'date:Y-m-d',
             'freight_amount'        => 'decimal:2',
             'status'                => 'integer',
+            'expense_breakdown'     => 'array',
         ];
     }
 
@@ -48,6 +49,11 @@ class Shipment extends Model
     public function sales(): HasMany
     {
         return $this->hasMany(ShipmentSale::class);
+    }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
     }
 
     public function allocations(): HasMany

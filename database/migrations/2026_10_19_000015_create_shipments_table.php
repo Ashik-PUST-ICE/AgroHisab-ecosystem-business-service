@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('vehicle_number')->nullable();
             $table->decimal('freight_amount', 15, 2)->default(0);
             $table->string('freight_paid_by')->default('owner')->comment('owner, aratdar, shared');
+            $table->json('expense_breakdown')->nullable()->comment('Dynamic itemized expense list: head, amount, paid_by, notes');
             $table->tinyInteger('status')->default(SHIPMENT_STATUS_DRAFT)->comment(SHIPMENT_STATUS_DRAFT.': Draft, '.SHIPMENT_STATUS_DISPATCHED.': Dispatched, '.SHIPMENT_STATUS_RECEIVED.': Received, '.SHIPMENT_STATUS_SELLING.': Selling, '.SHIPMENT_STATUS_SETTLED.': Settled');
             $table->text('notes')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();

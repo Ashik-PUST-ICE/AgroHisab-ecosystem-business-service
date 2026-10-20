@@ -12,7 +12,8 @@ return new class extends Migration
             $table->id();
             $table->string('expense_number')->unique();
             $table->unsignedBigInteger('expense_category_id');
-            $table->unsignedBigInteger('shipment_id')->nullable();
+            $table->unsignedBigInteger('purchase_id')->nullable()->comment('Linked procurement (e.g. bags, harvest coolie)');
+            $table->unsignedBigInteger('shipment_id')->nullable()->comment('Linked consignment (e.g. freight, loading, toll, arat coolie)');
             $table->unsignedBigInteger('account_id')->nullable();
             $table->string('title');
             $table->decimal('amount', 15, 2);
@@ -25,6 +26,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index(['expense_category_id', 'expense_date']);
+            $table->index('purchase_id');
             $table->index('shipment_id');
         });
     }

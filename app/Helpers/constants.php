@@ -296,3 +296,108 @@ if (!function_exists('stock_loss_type_label')) {
         return $labels[$type] ?? 'Unknown';
     }
 }
+// Shipment Consignment Expense Types (মাল চালানের পূর্বনির্ধারিত খরচের খাত)
+const SHIPMENT_EXPENSE_BAGS = 1;              // বস্তা ও প্যাকিং খরচ
+const SHIPMENT_EXPENSE_LOADING_COOLIE = 2;    // লোডিং কুলি/লেবার খরচ
+const SHIPMENT_EXPENSE_UNLOADING_COOLIE = 3;  // আড়তে আনলোডিং কুলি
+const SHIPMENT_EXPENSE_FREIGHT = 4;           // গাড়ি / ট্রাক ভাড়া
+const SHIPMENT_EXPENSE_TOLL_BRIDGE = 5;       // টোল ও সেতু/ফেরি খরচ
+const SHIPMENT_EXPENSE_EN_ROUTE = 6;          // পথ খরচ ও ড্রাইভার বকশিশ
+const SHIPMENT_EXPENSE_ARAT_FEES = 7;         // আড়তের খাজনা ও সমিতি
+const SHIPMENT_EXPENSE_SORTING_GRADING = 8;   // বাছাই ও গ্রেডিং মজুরি
+const SHIPMENT_EXPENSE_DHALTA = 9;            // ধলতা বা ওজন কর্তন চার্জ
+const SHIPMENT_EXPENSE_OTHER = 10;            // অন্যান্য বিবিধ খরচ
+
+if (!function_exists('shipment_expense_types')) {
+    function shipment_expense_types(): array
+    {
+        return [
+            [
+                'id'              => 1,
+                'code'            => 'BAGS',
+                'name'            => 'বস্তা ও প্যাকিং খরচ (Bags & Packaging)',
+                'default_paid_by' => 'owner',
+            ],
+            [
+                'id'              => 2,
+                'code'            => 'LOADING_COOLIE',
+                'name'            => 'লোডিং কুলি/লেবার খরচ (Loading Coolie)',
+                'default_paid_by' => 'owner',
+            ],
+            [
+                'id'              => 3,
+                'code'            => 'UNLOADING_COOLIE',
+                'name'            => 'আড়তে আনলোডিং কুলি (Arat Unloading Coolie)',
+                'default_paid_by' => 'aratdar',
+            ],
+            [
+                'id'              => 4,
+                'code'            => 'FREIGHT',
+                'name'            => 'গাড়ি / ট্রাক ভাড়া (Truck / Pickup Freight)',
+                'default_paid_by' => 'owner',
+            ],
+            [
+                'id'              => 5,
+                'code'            => 'TOLL_BRIDGE',
+                'name'            => 'টোল ও সেতু/ফেরি খরচ (Toll, Bridge & Ferry)',
+                'default_paid_by' => 'owner',
+            ],
+            [
+                'id'              => 6,
+                'code'            => 'EN_ROUTE',
+                'name'            => 'পথ খরচ ও ড্রাইভার বকশিশ (En-route & Driver Tip)',
+                'default_paid_by' => 'owner',
+            ],
+            [
+                'id'              => 7,
+                'code'            => 'ARAT_FEES',
+                'name'            => 'আড়তের খাজনা ও সমিতি (Arat Market Fee & Association)',
+                'default_paid_by' => 'aratdar',
+            ],
+            [
+                'id'              => 8,
+                'code'            => 'SORTING_GRADING',
+                'name'            => 'বাছাই ও গ্রেডিং মজুরি (Sorting & Grading Labour)',
+                'default_paid_by' => 'owner',
+            ],
+            [
+                'id'              => 9,
+                'code'            => 'DHALTA',
+                'name'            => 'ধলতা বা ওজন কর্তন (Dhalta / Weight Deduction)',
+                'default_paid_by' => 'aratdar',
+            ],
+            [
+                'id'              => 10,
+                'code'            => 'OTHER',
+                'name'            => 'অন্যান্য বিবিধ খরচ (Other Miscellaneous)',
+                'default_paid_by' => 'owner',
+            ],
+        ];
+    }
+}
+
+if (!function_exists('shipment_expense_type_label')) {
+    function shipment_expense_type_label(int $type): string
+    {
+        $types = shipment_expense_types();
+        foreach ($types as $item) {
+            if ($item['id'] === $type) {
+                return $item['name'];
+            }
+        }
+        return 'অন্যান্য (' . $type . ')';
+    }
+}
+
+if (!function_exists('shipment_expense_type_default_payer')) {
+    function shipment_expense_type_default_payer(int $type): string
+    {
+        $types = shipment_expense_types();
+        foreach ($types as $item) {
+            if ($item['id'] === $type) {
+                return $item['default_paid_by'];
+            }
+        }
+        return 'owner';
+    }
+}

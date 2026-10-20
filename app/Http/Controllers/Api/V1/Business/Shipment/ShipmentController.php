@@ -21,6 +21,13 @@ class ShipmentController extends Controller
         protected ShipmentService $shipmentService
     ) {}
 
+    public function expenseHeads()
+    {
+        return $this->handleRequest(function () {
+            $heads = $this->shipmentService->getStandardExpenseHeads();
+            return ApiResponse::success($heads, 'Standard shipment expense heads retrieved successfully');
+        });
+    }
     public function index(Request $request)
     {
         return $this->handleRequest(function () use ($request) {

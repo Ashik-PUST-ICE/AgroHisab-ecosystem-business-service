@@ -70,6 +70,10 @@ class ShipmentService
                 $data['expected_arrival_date'] = Carbon::parse($data['expected_arrival_date'])->toDateString();
             }
 
+                        if (isset($data['expenses'])) {
+                $data['expense_breakdown'] = $this->formatExpenses($data['expenses']);
+                unset($data['expenses']);
+            }
             $shipment = Shipment::create($data);
 
             foreach ($itemsData as $item) {
@@ -131,6 +135,10 @@ class ShipmentService
                 $data['expected_arrival_date'] = Carbon::parse($data['expected_arrival_date'])->toDateString();
             }
 
+                        if (isset($data['expenses'])) {
+                $data['expense_breakdown'] = $this->formatExpenses($data['expenses']);
+                unset($data['expenses']);
+            }
             $shipment->update($data);
 
             return $shipment->fresh(['aratdar', 'transporter', 'market', 'items.product', 'items.unit']);
@@ -586,7 +594,7 @@ class ShipmentService
 
     public function getSettlementPreview(Shipment $shipment): array
     {
-        $shipment->load(['aratdar', 'transporter', 'items.product', 'sales', 'allocations.remittance.account']);
+        $shipment->load(['aratdar', 'transporter', 'items.product', 'sales', 'allocations.remittance.account', 'expenses.category']);
 
         $stockBalance = $this->getStockBalance($shipment);
 
@@ -597,10 +605,15 @@ class ShipmentService
         $freightAmount = (float) $shipment->freight_amount;
         $freightPaidBy = $shipment->freight_paid_by;
 
+        // Linked expenses: কুলি/লেবার খরচ, বস্তা খরচ, টোল, আনলোডিং ইত্যাদি
+        $linkedOwnerExpenses = (float) $shipment->expenses->where('paid_by', 'owner')->sum('amount');
+        $linkedAratdarExpenses = (float) $shipment->expenses->where('paid_by', 'aratdar')->sum('amount');
+
         $totalRemitted = (float) $shipment->allocations->sum('amount');
 
         $aratdarFreightDeduction = ($freightPaidBy === 'aratdar') ? $freightAmount : 0;
-        $expectedNetProceeds = max(0, round($netSalesProceeds - $aratdarFreightDeduction, 2));
+        $totalAratdarDeductions = round($aratdarFreightDeduction + $linkedAratdarExpenses, 2);
+        $expectedNetProceeds = max(0, round($netSalesProceeds - $totalAratdarDeductions, 2));
 
         $outstandingReceivable = max(0, round($expectedNetProceeds - $totalRemitted, 2));
         $excessRemitted        = max(0, round($totalRemitted - $expectedNetProceeds, 2));
@@ -620,7 +633,8 @@ class ShipmentService
         }
 
         $ownerExpenses = ($freightPaidBy === 'owner') ? $freightAmount : 0;
-        $realizedProfit = round($netSalesProceeds - $allocatedCogs - $ownerExpenses, 2);
+        $totalOwnerExpenses = round($ownerExpenses + $linkedOwnerExpenses, 2);
+        $realizedProfit = round($netSalesProceeds - $allocatedCogs - $totalOwnerExpenses - $linkedAratdarExpenses, 2);
 
         $allStockSold = ($stockBalance['totals']['total_remaining_unsold'] <= 0) && ($stockBalance['totals']['total_received_weight'] > 0);
 
@@ -647,6 +661,20 @@ class ShipmentService
                 'aratdar_freight_deduction' => $aratdarFreightDeduction,
                 'owner_freight_expense'     => $ownerExpenses,
             ],
+            'expenses_breakdown' => [
+                'linked_owner_expenses'     => $linkedOwnerExpenses,
+                'linked_aratdar_expenses'   => $linkedAratdarExpenses,
+                'total_owner_expenses'      => $totalOwnerExpenses,
+                'total_aratdar_deductions'  => $totalAratdarDeductions,
+                'items'                     => $shipment->expenses->map(fn($e) => [
+                    'id'            => $e->id,
+                    'title'         => $e->title,
+                    'category'      => $e->category?->name,
+                    'amount'        => (float) $e->amount,
+                    'paid_by'       => $e->paid_by,
+                    'expense_date'  => $e->expense_date?->format('Y-m-d'),
+                ]),
+            ],
             'remittance_reconciliation' => [
                 'expected_net_proceeds'  => $expectedNetProceeds,
                 'total_remitted_amount'  => $totalRemitted,
@@ -663,7 +691,8 @@ class ShipmentService
             'profit_and_loss' => [
                 'allocated_cogs_sold_stock' => $allocatedCogs,
                 'unsold_inventory_asset'    => $unsoldInventoryValue,
-                'owner_consignment_expenses'=> $ownerExpenses,
+                'owner_consignment_expenses'=> $totalOwnerExpenses,
+                'aratdar_consignment_deductions' => $totalAratdarDeductions,
                 'realized_profit_or_loss'   => $realizedProfit,
             ],
             'settlement_status' => [
@@ -724,6 +753,42 @@ class ShipmentService
     public function getSettlement(Shipment $shipment): ?Settlement
     {
         return $shipment->settlement?->load(['shipment', 'aratdar']);
+    }
+
+
+    /**
+     * Standard expense heads used in agro produce mal challan business.
+     */
+    /**
+     * Standard expense heads used in agro produce mal challan business.
+     */
+    public function getStandardExpenseHeads(): array
+    {
+        return function_exists('shipment_expense_types') ? shipment_expense_types() : [];
+    }
+
+    /**
+     * Normalize and format dynamic expenses with helper labels & default payers.
+     */
+    protected function formatExpenses(array $rawExpenses): array
+    {
+        $formatted = [];
+        foreach ($rawExpenses as $exp) {
+            $type = isset($exp['type']) ? (int) $exp['type'] : null;
+            $head = $exp['head'] ?? ($type ? shipment_expense_type_label($type) : 'অন্যান্য খরচ');
+            $paidBy = !empty($exp['paid_by'])
+                ? $exp['paid_by']
+                : ($type ? shipment_expense_type_default_payer($type) : 'owner');
+
+            $formatted[] = [
+                'type'    => $type,
+                'head'    => $head,
+                'amount'  => (float) ($exp['amount'] ?? 0),
+                'paid_by' => $paidBy,
+                'notes'   => $exp['notes'] ?? null,
+            ];
+        }
+        return $formatted;
     }
 
     protected function generateShipmentNumber(): string

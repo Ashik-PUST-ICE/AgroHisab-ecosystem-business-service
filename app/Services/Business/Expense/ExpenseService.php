@@ -10,10 +10,14 @@ class ExpenseService
 {
     public function list(array $filters = []): LengthAwarePaginator
     {
-        $query = Expense::with(['category', 'shipment', 'account']);
+        $query = Expense::with(['category', 'shipment', 'purchase', 'account']);
 
         if (!empty($filters['expense_category_id'])) {
             $query->where('expense_category_id', $filters['expense_category_id']);
+        }
+
+        if (!empty($filters['purchase_id'])) {
+            $query->where('purchase_id', $filters['purchase_id']);
         }
 
         if (!empty($filters['shipment_id'])) {

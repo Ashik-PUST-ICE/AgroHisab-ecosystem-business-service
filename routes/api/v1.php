@@ -143,6 +143,7 @@ Route::middleware('auth.jwt')->group(function () {
 
     // ── API 10: Shipments ──────────────────────────────────────────────────
     Route::prefix('shipments')->group(function () {
+        Route::get('expense-heads', [ShipmentController::class, 'expenseHeads']);
         Route::get('/', [ShipmentController::class, 'index']);
         Route::post('/', [ShipmentController::class, 'store']);
         Route::get('{shipment}', [ShipmentController::class, 'show']);
