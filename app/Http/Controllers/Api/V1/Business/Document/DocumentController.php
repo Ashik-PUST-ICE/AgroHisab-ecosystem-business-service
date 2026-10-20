@@ -20,7 +20,6 @@ class DocumentController extends Controller
             $documents = $this->documentService->list(
                 $request->only(['documentable_type', 'documentable_id', 'document_type', 'search', 'per_page'])
             );
-
             return ApiResponse::success(DocumentResource::collection($documents), 'Documents retrieved successfully');
         });
     }
@@ -28,8 +27,10 @@ class DocumentController extends Controller
     public function store(DocumentRequest $request)
     {
         return $this->handleRequest(function () use ($request) {
-            $document = $this->documentService->store($request->validated());
-
+            // Mode A: raw file present → FileManagerService proxies to auth-service
+            // Mode B: no file → validated data contains file_path (pre-uploaded by frontend)
+            $file     = $request->hasFile('file') ? $request->file('file') : null;
+            $document = $this->documentService->store($request->validated(), $file);
             return ApiResponse::success(new DocumentResource($document), 'Document attached successfully', 201);
         });
     }
@@ -38,7 +39,6 @@ class DocumentController extends Controller
     {
         return $this->handleRequest(function () use ($document) {
             $doc = $this->documentService->show($document);
-
             return ApiResponse::success(new DocumentResource($doc), 'Document retrieved successfully');
         });
     }
@@ -47,7 +47,6 @@ class DocumentController extends Controller
     {
         return $this->handleRequest(function () use ($document) {
             $this->documentService->destroy($document);
-
             return ApiResponse::success(null, 'Document detached successfully');
         });
     }
