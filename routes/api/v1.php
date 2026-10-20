@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\Business\Account\AccountController;
 use App\Http\Controllers\Api\V1\Business\Aratdar\AratdarController;
 use App\Http\Controllers\Api\V1\Business\Dashboard\DashboardController;
+use App\Http\Controllers\Api\V1\Business\Document\DocumentController;
 use App\Http\Controllers\Api\V1\Business\ExpenseCategory\ExpenseCategoryController;
 use App\Http\Controllers\Api\V1\Business\Market\MarketController;
 use App\Http\Controllers\Api\V1\Business\Payment\AratdarPaymentController;
@@ -153,8 +154,18 @@ Route::middleware('auth.jwt')->group(function () {
         Route::get('metrics', [DashboardController::class, 'metrics']);
     });
 
-    // API 13: Reports (Profitability, etc.)
+    // API 13: Reports (Profitability, Cashbook, Inventory Valuation)
     Route::prefix('reports')->group(function () {
         Route::get('profitability', [ReportController::class, 'profitability']);
+        Route::get('cashbook', [ReportController::class, 'cashbook']);
+        Route::get('inventory-valuation', [ReportController::class, 'inventoryValuation']);
+    });
+
+    // API 14: Documents & Attachments
+    Route::prefix('documents')->group(function () {
+        Route::get('/', [DocumentController::class, 'index']);
+        Route::post('/', [DocumentController::class, 'store']);
+        Route::get('{document}', [DocumentController::class, 'show']);
+        Route::delete('{document}', [DocumentController::class, 'destroy']);
     });
 });

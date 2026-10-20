@@ -23,4 +23,26 @@ class ReportController extends Controller
             return ApiResponse::success($report, 'Consignment profitability report generated successfully');
         });
     }
+
+    public function cashbook(Request $request)
+    {
+        return $this->handleRequest(function () use ($request) {
+            $cashbook = $this->reportService->getCashbookReport(
+                $request->only(['account_id', 'from_date', 'to_date'])
+            );
+
+            return ApiResponse::success($cashbook, 'Cashbook statement generated successfully');
+        });
+    }
+
+    public function inventoryValuation(Request $request)
+    {
+        return $this->handleRequest(function () use ($request) {
+            $inventory = $this->reportService->getInventoryValuationReport(
+                $request->only(['product_id', 'category_id', 'as_of_date'])
+            );
+
+            return ApiResponse::success($inventory, 'Inventory valuation report generated successfully');
+        });
+    }
 }
