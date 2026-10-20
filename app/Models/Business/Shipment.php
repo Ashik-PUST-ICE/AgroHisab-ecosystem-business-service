@@ -44,6 +44,11 @@ class Shipment extends Model
         return $this->hasMany(ShipmentItem::class);
     }
 
+    public function sales(): HasMany
+    {
+        return $this->hasMany(ShipmentSale::class);
+    }
+
     public function stockMovements(): MorphMany
     {
         return $this->morphMany(StockMovement::class, 'reference');

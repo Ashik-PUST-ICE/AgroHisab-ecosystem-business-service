@@ -118,7 +118,7 @@ Route::middleware('auth.jwt')->group(function () {
         Route::post('{purchase}/payments', [PurchaseController::class, 'storePayment']);
     });
 
-    // API 10: Shipments + Dispatch + Goods Receipt
+    // API 10: Shipments + Dispatch + Goods Receipt + Challan + Sales + Stock Balance
     Route::prefix('shipments')->group(function () {
         Route::get('/', [ShipmentController::class, 'index']);
         Route::post('/', [ShipmentController::class, 'store']);
@@ -127,5 +127,10 @@ Route::middleware('auth.jwt')->group(function () {
         Route::delete('{shipment}', [ShipmentController::class, 'destroy']);
         Route::post('{shipment}/dispatch', [ShipmentController::class, 'dispatch']);
         Route::post('{shipment}/receive', [ShipmentController::class, 'receive']);
+        Route::get('{shipment}/challan', [ShipmentController::class, 'challan']);
+        Route::get('{shipment}/challan-pdf', [ShipmentController::class, 'challan']);
+        Route::get('{shipment}/sales', [ShipmentController::class, 'sales']);
+        Route::post('{shipment}/sales', [ShipmentController::class, 'storeSale']);
+        Route::get('{shipment}/stock', [ShipmentController::class, 'stock']);
     });
 });
