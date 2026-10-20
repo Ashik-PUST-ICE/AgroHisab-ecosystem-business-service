@@ -12,9 +12,7 @@ use Illuminate\Http\Request;
 
 class DocumentController extends Controller
 {
-    public function __construct(
-        protected DocumentService $documentService
-    ) {}
+    public function __construct(protected DocumentService $documentService) {}
 
     public function index(Request $request)
     {
@@ -30,12 +28,9 @@ class DocumentController extends Controller
     public function store(DocumentRequest $request)
     {
         return $this->handleRequest(function () use ($request) {
-            $document = $this->documentService->store(
-                $request->validated(),
-                $request->file('file')
-            );
+            $document = $this->documentService->store($request->validated());
 
-            return ApiResponse::success(new DocumentResource($document), 'Document uploaded and attached successfully', 201);
+            return ApiResponse::success(new DocumentResource($document), 'Document attached successfully', 201);
         });
     }
 
@@ -53,7 +48,7 @@ class DocumentController extends Controller
         return $this->handleRequest(function () use ($document) {
             $this->documentService->destroy($document);
 
-            return ApiResponse::success(null, 'Document deleted successfully');
+            return ApiResponse::success(null, 'Document detached successfully');
         });
     }
 }

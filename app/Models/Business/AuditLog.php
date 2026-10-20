@@ -3,6 +3,7 @@
 namespace App\Models\Business;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class AuditLog extends Model
 {
@@ -11,7 +12,12 @@ class AuditLog extends Model
     protected function casts(): array
     {
         return [
-            'context' => 'array',
+            'payload' => 'array',
         ];
+    }
+
+    public function auditable(): MorphTo
+    {
+        return $this->morphTo();
     }
 }

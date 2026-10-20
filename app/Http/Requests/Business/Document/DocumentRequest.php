@@ -14,9 +14,12 @@ class DocumentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file'              => ['required', 'file', 'max:10240', 'mimes:jpeg,png,jpg,webp,pdf,doc,docx'],
+            'file_path'         => ['required', 'string', 'max:500'],
             'title'             => ['required', 'string', 'max:255'],
             'document_type'     => ['nullable', 'string', 'in:memo,challan,voucher,receipt,agreement,other'],
+            'file_name'         => ['nullable', 'string', 'max:255'],
+            'mime_type'         => ['nullable', 'string', 'max:100'],
+            'file_size'         => ['nullable', 'integer'],
             'documentable_type' => ['nullable', 'string', 'max:255'],
             'documentable_id'   => ['nullable', 'integer'],
             'notes'             => ['nullable', 'string', 'max:1000'],

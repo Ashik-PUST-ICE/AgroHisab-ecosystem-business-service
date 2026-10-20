@@ -3,24 +3,54 @@
 namespace App\Services\Business\AuditLog;
 
 use App\Models\Business\AuditLog;
-use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class AuditLogService
 {
-    public function log(array $data): AuditLog
+    public function list(array $filters = []): LengthAwarePaginator
     {
-        return AuditLog::create([
-            'actor_id' => $data['actor_id'] ?? authId(),
-            'target_id' => $data['target_id'] ?? null,
-            'category' => $data['category'] ?? null,
-            'action' => $data['action'] ?? null,
-            'message' => $data['message'] ?? 'Activity logged',
-            'context' => $data['context'] ?? [],
-            'ip' => $data['ip'] ?? request()->ip(),
-            'user_agent' => $data['user_agent'] ?? (request()->userAgent() ?: null),
-            'level' => $data['level'] ?? 'info',
-            'request_id' => $data['request_id'] ?? request()->header('X-Request-ID'),
-            'trace_id' => $data['trace_id'] ?? request()->header('X-Trace-ID'),
-        ]);
+        $query = AuditLog::query();
+
+        if (!empty($filters['action'])) {
+            $query->where('action', $filters['action']);
+        }
+
+        if (!empty($filters['auditable_type'])) {
+            $query->where('auditable_type', $filters['auditable_type']);
+        }
+
+        if (!empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+
+        if (!empty($filters['from_date'])) {
+            $query->whereDate('created_at', '>=', Carbon::parse($filters['from_date'])->toDateString());
+        }
+
+        if (!empty($filters['to_date'])) {
+            $query->whereDate('created_at', '<=', Carbon::parse($filters['to_date'])->toDateString());
+        }
+
+        $perPage = (int) ($filters['per_page'] ?? 20);
+        return $query->latest('id')->paginate($perPage);
+    }
+
+    public static function log(string $action, string $description, ?string $type = null, ?int $id = null, ?array $payload = null): void
+    {
+        try {
+            AuditLog::create([
+                'action'         => $action,
+                'description'    => $description,
+                'auditable_type' => $type,
+                'auditable_id'   => $id,
+                'user_id'        => authId(),
+                'ip_address'     => request()->ip(),
+                'user_agent'     => request()->userAgent(),
+                'payload'        => $payload,
+            ]);
+        } catch (\Throwable $e) {
+            // Silently ignore to avoid failing main business transaction
+        }
     }
 }

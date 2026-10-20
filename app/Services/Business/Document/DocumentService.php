@@ -3,12 +3,16 @@
 namespace App\Services\Business\Document;
 
 use App\Models\Business\Document;
-use Carbon\Carbon;
+use App\Services\Applications\FileManager\FileManagerService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 
 class DocumentService
 {
+    public function __construct(
+        protected FileManagerService $fileManager
+    ) {}
+
     public function list(array $filters = []): LengthAwarePaginator
     {
         $query = Document::query();
@@ -39,25 +43,15 @@ class DocumentService
 
     public function store(array $data, UploadedFile $file): Document
     {
-        $extension = $file->getClientOriginalExtension();
-        $originalName = $file->getClientOriginalName();
-        $fileName = 'doc_' . Carbon::now()->format('Ymd_His') . '_' . uniqid() . '.' . $extension;
-
-        $targetDir = public_path('uploads/documents');
-        if (!is_dir($targetDir)) {
-            mkdir($targetDir, 0777, true);
-        }
-
-        $file->move($targetDir, $fileName);
-        $filePath = 'uploads/documents/' . $fileName;
+        $fileData = $this->fileManager->upload($file, 'uploads/documents');
 
         return Document::create([
             'title'             => $data['title'],
             'document_type'     => $data['document_type'] ?? 'memo',
-            'file_path'         => $filePath,
-            'file_name'         => $originalName,
-            'mime_type'         => $file->getClientMimeType(),
-            'file_size'         => file_exists(public_path($filePath)) ? filesize(public_path($filePath)) : 0,
+            'file_path'         => $fileData['path'],
+            'file_name'         => $fileData['filename'] ?? $file->getClientOriginalName(),
+            'mime_type'         => $fileData['mime'] ?? $file->getClientMimeType(),
+            'file_size'         => $fileData['size'] ?? $file->getSize(),
             'documentable_type' => $data['documentable_type'] ?? null,
             'documentable_id'   => $data['documentable_id'] ?? null,
             'notes'             => $data['notes'] ?? null,
@@ -72,11 +66,7 @@ class DocumentService
 
     public function destroy(Document $document): void
     {
-        $fullPath = public_path($document->file_path);
-        if (file_exists($fullPath)) {
-            @unlink($fullPath);
-        }
-
+        $this->fileManager->delete($document->file_path);
         $document->delete();
     }
 }

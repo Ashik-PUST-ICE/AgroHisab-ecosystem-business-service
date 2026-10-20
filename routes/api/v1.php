@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\Api\V1\Business\Account\AccountController;
 use App\Http\Controllers\Api\V1\Business\Aratdar\AratdarController;
+use App\Http\Controllers\Api\V1\Business\AuditLog\AuditLogController;
 use App\Http\Controllers\Api\V1\Business\Dashboard\DashboardController;
 use App\Http\Controllers\Api\V1\Business\Document\DocumentController;
+use App\Http\Controllers\Api\V1\Business\Expense\ExpenseController;
 use App\Http\Controllers\Api\V1\Business\ExpenseCategory\ExpenseCategoryController;
 use App\Http\Controllers\Api\V1\Business\Market\MarketController;
 use App\Http\Controllers\Api\V1\Business\Payment\AratdarPaymentController;
@@ -13,6 +15,7 @@ use App\Http\Controllers\Api\V1\Business\Purchase\PurchaseController;
 use App\Http\Controllers\Api\V1\Business\Report\ReportController;
 use App\Http\Controllers\Api\V1\Business\Shipment\ShipmentController;
 use App\Http\Controllers\Api\V1\Business\Supplier\SupplierController;
+use App\Http\Controllers\Api\V1\Business\System\BackupController;
 use App\Http\Controllers\Api\V1\Business\Transporter\TransporterController;
 use App\Http\Controllers\Api\V1\Business\Unit\UnitConversionController;
 use App\Http\Controllers\Api\V1\Business\Unit\UnitController;
@@ -161,11 +164,31 @@ Route::middleware('auth.jwt')->group(function () {
         Route::get('inventory-valuation', [ReportController::class, 'inventoryValuation']);
     });
 
-    // API 14: Documents & Attachments
+    // API 14: Documents & Attachments (FileManager backed)
     Route::prefix('documents')->group(function () {
         Route::get('/', [DocumentController::class, 'index']);
         Route::post('/', [DocumentController::class, 'store']);
         Route::get('{document}', [DocumentController::class, 'show']);
         Route::delete('{document}', [DocumentController::class, 'destroy']);
+    });
+
+    // API 15: Expenses & Consignment Charges
+    Route::prefix('expenses')->group(function () {
+        Route::get('/', [ExpenseController::class, 'index']);
+        Route::post('/', [ExpenseController::class, 'store']);
+        Route::get('{expense}', [ExpenseController::class, 'show']);
+        Route::put('{expense}', [ExpenseController::class, 'update']);
+        Route::delete('{expense}', [ExpenseController::class, 'destroy']);
+    });
+
+    // API 16: Audit Logs
+    Route::prefix('audit-logs')->group(function () {
+        Route::get('/', [AuditLogController::class, 'index']);
+    });
+
+    // API 17: System Backups
+    Route::prefix('system/backups')->group(function () {
+        Route::get('/', [BackupController::class, 'index']);
+        Route::post('/', [BackupController::class, 'store']);
     });
 });
