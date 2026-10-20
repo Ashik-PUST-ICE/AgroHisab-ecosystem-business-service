@@ -21,7 +21,7 @@ class ExpenseCategoryRequest extends FormRequest
             'name'        => [$isUpdate ? 'sometimes' : 'required', 'string', 'max:255'],
             'code'        => ['nullable', 'string', 'max:50', 'unique:expense_categories,code,' . ($id ?? 'NULL')],
             'description' => ['nullable', 'string'],
-            'status'      => ['nullable', 'in:0,1'],
+            'status'      => ['nullable', 'in:' . STATUS_ACTIVE . ',' . STATUS_INACTIVE],
         ];
     }
 }

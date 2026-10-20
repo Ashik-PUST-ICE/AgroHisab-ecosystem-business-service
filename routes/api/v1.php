@@ -2,10 +2,12 @@
 
 use App\Http\Controllers\Api\V1\Business\Account\AccountController;
 use App\Http\Controllers\Api\V1\Business\Aratdar\AratdarController;
+use App\Http\Controllers\Api\V1\Business\ExpenseCategory\ExpenseCategoryController;
 use App\Http\Controllers\Api\V1\Business\Market\MarketController;
 use App\Http\Controllers\Api\V1\Business\ProductCategory\ProductCategoryController;
 use App\Http\Controllers\Api\V1\Business\ProductController;
 use App\Http\Controllers\Api\V1\Business\Supplier\SupplierController;
+use App\Http\Controllers\Api\V1\Business\Transporter\TransporterController;
 use App\Http\Controllers\Api\V1\Business\Unit\UnitConversionController;
 use App\Http\Controllers\Api\V1\Business\Unit\UnitController;
 use Illuminate\Support\Facades\Route;
@@ -81,5 +83,23 @@ Route::middleware('auth.jwt')->group(function () {
         Route::get('{account}', [AccountController::class, 'show']);
         Route::put('{account}', [AccountController::class, 'update']);
         Route::delete('{account}', [AccountController::class, 'destroy']);
+    });
+
+    // API 7: Expense Categories
+    Route::prefix('expense-categories')->group(function () {
+        Route::get('/', [ExpenseCategoryController::class, 'index']);
+        Route::post('/', [ExpenseCategoryController::class, 'store']);
+        Route::get('{expenseCategory}', [ExpenseCategoryController::class, 'show']);
+        Route::put('{expenseCategory}', [ExpenseCategoryController::class, 'update']);
+        Route::delete('{expenseCategory}', [ExpenseCategoryController::class, 'destroy']);
+    });
+
+    // API 8: Transporters
+    Route::prefix('transporters')->group(function () {
+        Route::get('/', [TransporterController::class, 'index']);
+        Route::post('/', [TransporterController::class, 'store']);
+        Route::get('{transporter}', [TransporterController::class, 'show']);
+        Route::put('{transporter}', [TransporterController::class, 'update']);
+        Route::delete('{transporter}', [TransporterController::class, 'destroy']);
     });
 });
