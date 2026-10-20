@@ -80,6 +80,15 @@ const MARKET_SOURCE = 1;
 const MARKET_DESTINATION = 2;
 const MARKET_BOTH = 3;
 
+// Expense Payment Statuses
+const EXPENSE_PAYMENT_STATUS_UNPAID = 0;
+const EXPENSE_PAYMENT_STATUS_PAID = 1;
+const EXPENSE_PAYMENT_STATUS_DUE = 2;
+
+// Transaction Types
+const TRANSACTION_TYPE_DEBIT = 'debit';
+const TRANSACTION_TYPE_CREDIT = 'credit';
+
 if (!function_exists("getStatus")) {
     function getStatus($input = null)
     {
@@ -107,6 +116,18 @@ if (!function_exists("status_label")) {
     function status_label(int|null $status): string
     {
         return getStatus($status) ?: 'Unknown';
+    }
+}
+
+if (!function_exists('expense_payment_status_label')) {
+    function expense_payment_status_label(?int $status): ?string
+    {
+        return match ($status) {
+            EXPENSE_PAYMENT_STATUS_PAID => 'paid',
+            EXPENSE_PAYMENT_STATUS_UNPAID => 'unpaid',
+            EXPENSE_PAYMENT_STATUS_DUE => 'due',
+            default => null,
+        };
     }
 }
 

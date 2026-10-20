@@ -1,9 +1,10 @@
-﻿<?php
+<?php
 
 namespace App\Http\Requests\Business\Market;
 
 use App\Models\Business\Market;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class MarketRequest extends FormRequest
 {
@@ -20,9 +21,9 @@ class MarketRequest extends FormRequest
             'name'          => [$isUpdate ? 'sometimes' : 'required', 'string', 'max:255'],
             'district'      => ['nullable', 'string', 'max:255'],
             'address'       => ['nullable', 'string', 'max:500'],
-            'type'          => ['nullable', 'in:1,2,3'],
+            'type'          => ['nullable', Rule::in([MARKET_SOURCE, MARKET_DESTINATION, MARKET_BOTH])],
             'contact_notes' => ['nullable', 'string'],
-            'status'        => ['nullable', 'in:0,1'],
+            'status'        => ['nullable', Rule::in([STATUS_INACTIVE, STATUS_ACTIVE])],
         ];
     }
 }
