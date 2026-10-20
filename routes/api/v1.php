@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\Business\Account\AccountController;
 use App\Http\Controllers\Api\V1\Business\Aratdar\AratdarController;
 use App\Http\Controllers\Api\V1\Business\ExpenseCategory\ExpenseCategoryController;
 use App\Http\Controllers\Api\V1\Business\Market\MarketController;
+use App\Http\Controllers\Api\V1\Business\Payment\AratdarPaymentController;
 use App\Http\Controllers\Api\V1\Business\ProductCategory\ProductCategoryController;
 use App\Http\Controllers\Api\V1\Business\ProductController;
 use App\Http\Controllers\Api\V1\Business\Purchase\PurchaseController;
@@ -118,7 +119,7 @@ Route::middleware('auth.jwt')->group(function () {
         Route::post('{purchase}/payments', [PurchaseController::class, 'storePayment']);
     });
 
-    // API 10: Shipments + Dispatch + Goods Receipt + Challan + Sales + Stock Balance
+    // API 10: Shipments + Dispatch + Goods Receipt + Challan + Sales + Stock Balance + Settlement Preview
     Route::prefix('shipments')->group(function () {
         Route::get('/', [ShipmentController::class, 'index']);
         Route::post('/', [ShipmentController::class, 'store']);
@@ -132,5 +133,14 @@ Route::middleware('auth.jwt')->group(function () {
         Route::get('{shipment}/sales', [ShipmentController::class, 'sales']);
         Route::post('{shipment}/sales', [ShipmentController::class, 'storeSale']);
         Route::get('{shipment}/stock', [ShipmentController::class, 'stock']);
+        Route::get('{shipment}/settlement-preview', [ShipmentController::class, 'settlementPreview']);
+    });
+
+    // API 11: Aratdar Remittances & Allocations
+    Route::prefix('payments')->group(function () {
+        Route::get('aratdar-remittance', [AratdarPaymentController::class, 'index']);
+        Route::post('aratdar-remittance', [AratdarPaymentController::class, 'store']);
+        Route::get('aratdar-remittance/{remittance}', [AratdarPaymentController::class, 'show']);
+        Route::post('{remittance}/allocate', [AratdarPaymentController::class, 'allocate']);
     });
 });

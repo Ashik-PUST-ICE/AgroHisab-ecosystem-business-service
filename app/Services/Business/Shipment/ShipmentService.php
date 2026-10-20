@@ -8,6 +8,7 @@ use App\Models\Business\Shipment;
 use App\Models\Business\ShipmentItem;
 use App\Models\Business\ShipmentSale;
 use App\Models\Business\StockMovement;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +32,14 @@ class ShipmentService
             $query->where('transporter_id', $filters['transporter_id']);
         }
 
+        if (!empty($filters['from_date'])) {
+            $query->whereDate('dispatch_date', '>=', Carbon::parse($filters['from_date'])->toDateString());
+        }
+
+        if (!empty($filters['to_date'])) {
+            $query->whereDate('dispatch_date', '<=', Carbon::parse($filters['to_date'])->toDateString());
+        }
+
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
@@ -52,6 +61,13 @@ class ShipmentService
             $data['shipment_number'] = $this->generateShipmentNumber();
             $data['status']          = SHIPMENT_STATUS_DRAFT;
             $data['created_by']      = authId();
+
+            if (!empty($data['dispatch_date'])) {
+                $data['dispatch_date'] = Carbon::parse($data['dispatch_date'])->toDateString();
+            }
+            if (!empty($data['expected_arrival_date'])) {
+                $data['expected_arrival_date'] = Carbon::parse($data['expected_arrival_date'])->toDateString();
+            }
 
             $shipment = Shipment::create($data);
 
@@ -107,6 +123,13 @@ class ShipmentService
                 }
             }
 
+            if (!empty($data['dispatch_date'])) {
+                $data['dispatch_date'] = Carbon::parse($data['dispatch_date'])->toDateString();
+            }
+            if (!empty($data['expected_arrival_date'])) {
+                $data['expected_arrival_date'] = Carbon::parse($data['expected_arrival_date'])->toDateString();
+            }
+
             $shipment->update($data);
 
             return $shipment->fresh(['aratdar', 'transporter', 'market', 'items.product', 'items.unit']);
@@ -150,9 +173,13 @@ class ShipmentService
                 ]);
             }
 
+            $dispatchDate = !empty($data['dispatch_date'])
+                ? Carbon::parse($data['dispatch_date'])->toDateString()
+                : Carbon::now()->toDateString();
+
             $shipment->update([
                 'status'         => SHIPMENT_STATUS_DISPATCHED,
-                'dispatch_date'  => $data['dispatch_date'],
+                'dispatch_date'  => $dispatchDate,
                 'vehicle_number' => $data['vehicle_number'] ?? $shipment->vehicle_number,
             ]);
 
@@ -233,11 +260,19 @@ class ShipmentService
         $totalDispatchedWeight = (float) $shipment->items->sum('dispatched_weight');
         $totalReceivedWeight = (float) $shipment->items->sum('received_weight');
 
+        $dispatchDate = $shipment->dispatch_date
+            ? Carbon::parse($shipment->dispatch_date)->toDateString()
+            : Carbon::now()->toDateString();
+
+        $expectedArrival = $shipment->expected_arrival_date
+            ? Carbon::parse($shipment->expected_arrival_date)->toDateString()
+            : null;
+
         return [
             'challan_number'   => $shipment->shipment_number,
             'shipment_id'      => $shipment->id,
-            'dispatch_date'    => $shipment->dispatch_date?->format('Y-m-d'),
-            'expected_arrival' => $shipment->expected_arrival_date?->format('Y-m-d'),
+            'dispatch_date'    => $dispatchDate,
+            'expected_arrival' => $expectedArrival,
             'status'           => $shipment->status,
             'status_label'     => shipment_status_label($shipment->status),
             'transporter'      => [
@@ -419,13 +454,13 @@ class ShipmentService
                 $base = ($commissionBase === 'net_sales') ? $netAmount : $grossAmount;
                 $commissionAmount = round($base * ($commissionRate / 100), 2);
             } else {
-                // Fixed rate per quantity
                 $commissionAmount = round($quantity * $commissionRate, 2);
             }
 
             $netProceeds = max(0, round($netAmount - $commissionAmount, 2));
 
             $saleNumber = $this->generateSaleNumber();
+            $saleDate = Carbon::parse($data['sale_date'])->toDateString();
 
             $sale = ShipmentSale::create([
                 'sale_number'       => $saleNumber,
@@ -433,7 +468,7 @@ class ShipmentService
                 'shipment_item_id'  => $data['shipment_item_id'] ?? null,
                 'product_id'        => $data['product_id'],
                 'unit_id'           => $data['unit_id'] ?? null,
-                'sale_date'         => $data['sale_date'],
+                'sale_date'         => $saleDate,
                 'quantity'          => $quantity,
                 'unit_rate'         => $unitRate,
                 'gross_amount'      => $grossAmount,
@@ -496,7 +531,6 @@ class ShipmentService
             $received   = (float) $item->received_weight;
             $shortage   = (float) $item->shortage_weight;
 
-            // Find sales linked to this item, or matching product
             $itemSales = $shipment->sales->filter(function ($s) use ($item) {
                 return $s->shipment_item_id === $item->id || (!$s->shipment_item_id && $s->product_id === $item->product_id);
             });
@@ -554,9 +588,99 @@ class ShipmentService
         ];
     }
 
+    public function getSettlementPreview(Shipment $shipment): array
+    {
+        $shipment->load(['aratdar', 'transporter', 'items.product', 'sales', 'allocations.remittance.account']);
+
+        $stockBalance = $this->getStockBalance($shipment);
+
+        $grossSales = (float) $stockBalance['totals']['total_gross_sales'];
+        $commission = (float) $stockBalance['totals']['total_commission'];
+        $netSalesProceeds = (float) $stockBalance['totals']['total_net_proceeds'];
+
+        $freightAmount = (float) $shipment->freight_amount;
+        $freightPaidBy = $shipment->freight_paid_by;
+
+        $totalRemitted = (float) $shipment->allocations->sum('amount');
+
+        $aratdarFreightDeduction = ($freightPaidBy === 'aratdar') ? $freightAmount : 0;
+        $expectedNetProceeds = max(0, round($netSalesProceeds - $aratdarFreightDeduction, 2));
+
+        $outstandingReceivable = max(0, round($expectedNetProceeds - $totalRemitted, 2));
+        $excessRemitted        = max(0, round($totalRemitted - $expectedNetProceeds, 2));
+
+        $allocatedCogs = 0;
+        $unsoldInventoryValue = 0;
+
+        foreach ($shipment->items as $item) {
+            $unitRate = (float) $item->unit_rate;
+            $itemSales = $shipment->sales->filter(fn($s) => $s->shipment_item_id === $item->id || (!$s->shipment_item_id && $s->product_id === $item->product_id));
+            $soldWeight = (float) $itemSales->sum('quantity');
+            $receivedWeight = (float) $item->received_weight;
+            $unsoldWeight = max(0, $receivedWeight - $soldWeight);
+
+            $allocatedCogs += round($soldWeight * $unitRate, 2);
+            $unsoldInventoryValue += round($unsoldWeight * $unitRate, 2);
+        }
+
+        $ownerExpenses = ($freightPaidBy === 'owner') ? $freightAmount : 0;
+        $realizedProfit = round($netSalesProceeds - $allocatedCogs - $ownerExpenses, 2);
+
+        $allStockSold = ($stockBalance['totals']['total_remaining_unsold'] <= 0) && ($stockBalance['totals']['total_received_weight'] > 0);
+
+        return [
+            'shipment' => [
+                'id'              => $shipment->id,
+                'shipment_number' => $shipment->shipment_number,
+                'status'          => $shipment->status,
+                'status_label'    => shipment_status_label($shipment->status),
+                'aratdar'         => [
+                    'id'            => $shipment->aratdar?->id,
+                    'name'          => $shipment->aratdar?->name,
+                    'business_name' => $shipment->aratdar?->business_name,
+                ],
+            ],
+            'sales_summary' => [
+                'gross_sales'        => $grossSales,
+                'commission_amount'  => $commission,
+                'net_sales_proceeds' => $netSalesProceeds,
+            ],
+            'freight_summary' => [
+                'freight_amount'            => $freightAmount,
+                'freight_paid_by'           => $freightPaidBy,
+                'aratdar_freight_deduction' => $aratdarFreightDeduction,
+                'owner_freight_expense'     => $ownerExpenses,
+            ],
+            'remittance_reconciliation' => [
+                'expected_net_proceeds'  => $expectedNetProceeds,
+                'total_remitted_amount'  => $totalRemitted,
+                'outstanding_receivable' => $outstandingReceivable,
+                'excess_remitted'        => $excessRemitted,
+                'allocations'            => $shipment->allocations->map(fn($a) => [
+                    'id'                => $a->id,
+                    'remittance_number' => $a->remittance?->remittance_number,
+                    'amount'            => (float) $a->amount,
+                    'allocation_date'   => $a->allocation_date ? Carbon::parse($a->allocation_date)->toDateString() : null,
+                    'account_name'      => $a->remittance?->account?->name,
+                ]),
+            ],
+            'profit_and_loss' => [
+                'allocated_cogs_sold_stock' => $allocatedCogs,
+                'unsold_inventory_asset'    => $unsoldInventoryValue,
+                'owner_consignment_expenses'=> $ownerExpenses,
+                'realized_profit_or_loss'   => $realizedProfit,
+            ],
+            'settlement_status' => [
+                'can_settle'     => $allStockSold && $outstandingReceivable <= 0,
+                'all_stock_sold' => $allStockSold,
+                'payment_cleared'=> $outstandingReceivable <= 0,
+            ],
+        ];
+    }
+
     protected function generateShipmentNumber(): string
     {
-        $prefix = 'SHP-' . date('Ymd') . '-';
+        $prefix = 'SHP-' . Carbon::now()->format('Ymd') . '-';
         $latest = Shipment::where('shipment_number', 'like', "{$prefix}%")
             ->orderBy('id', 'desc')
             ->first();
@@ -573,7 +697,7 @@ class ShipmentService
 
     protected function generateSaleNumber(): string
     {
-        $prefix = 'SLS-' . date('Ymd') . '-';
+        $prefix = 'SLS-' . Carbon::now()->format('Ymd') . '-';
         $latest = ShipmentSale::where('sale_number', 'like', "{$prefix}%")
             ->orderBy('id', 'desc')
             ->first();

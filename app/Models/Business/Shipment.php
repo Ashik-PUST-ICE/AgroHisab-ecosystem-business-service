@@ -49,6 +49,11 @@ class Shipment extends Model
         return $this->hasMany(ShipmentSale::class);
     }
 
+    public function allocations(): HasMany
+    {
+        return $this->hasMany(RemittanceAllocation::class);
+    }
+
     public function stockMovements(): MorphMany
     {
         return $this->morphMany(StockMovement::class, 'reference');

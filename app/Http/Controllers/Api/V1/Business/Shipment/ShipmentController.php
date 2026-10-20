@@ -10,10 +10,9 @@ use App\Http\Requests\Business\Shipment\ShipmentSaleRequest;
 use App\Http\Resources\Business\Shipment\ShipmentResource;
 use App\Http\Resources\Business\Shipment\ShipmentSaleResource;
 use App\Models\Business\Shipment;
+use App\Services\Applications\Api\ApiResponse;
 use App\Services\Business\Shipment\ShipmentService;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 class ShipmentController extends Controller
 {
@@ -21,129 +20,118 @@ class ShipmentController extends Controller
         protected ShipmentService $shipmentService
     ) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
-        $filters = $request->only(['status', 'aratdar_id', 'transporter_id', 'search', 'per_page']);
-        $shipments = $this->shipmentService->list($filters);
+        return $this->handleRequest(function () use ($request) {
+            $shipments = $this->shipmentService->list(
+                $request->only(['status', 'aratdar_id', 'transporter_id', 'search', 'per_page'])
+            );
 
-        return response()->json([
-            'status'  => true,
-            'message' => getMessage(DATA_FETCH_SUCCESSFULLY),
-            'data'    => ShipmentResource::collection($shipments)->response()->getData(true),
-        ]);
+            return ApiResponse::success(ShipmentResource::collection($shipments), 'Shipments retrieved successfully');
+        });
     }
 
-    public function store(ShipmentRequest $request): JsonResponse
+    public function store(ShipmentRequest $request)
     {
-        $shipment = $this->shipmentService->create($request->validated());
+        return $this->handleRequest(function () use ($request) {
+            $shipment = $this->shipmentService->create($request->validated());
 
-        return response()->json([
-            'status'  => true,
-            'message' => getMessage(CREATED_SUCCESSFULLY),
-            'data'    => new ShipmentResource($shipment),
-        ], 201);
+            return ApiResponse::success(new ShipmentResource($shipment), 'Shipment created successfully', 201);
+        });
     }
 
-    public function show(Shipment $shipment): JsonResponse
+    public function show(Shipment $shipment)
     {
-        $shipment = $this->shipmentService->show($shipment);
+        return $this->handleRequest(function () use ($shipment) {
+            $shipment = $this->shipmentService->show($shipment);
 
-        return response()->json([
-            'status'  => true,
-            'message' => getMessage(DATA_FETCH_SUCCESSFULLY),
-            'data'    => new ShipmentResource($shipment),
-        ]);
+            return ApiResponse::success(new ShipmentResource($shipment), 'Shipment retrieved successfully');
+        });
     }
 
-    public function update(ShipmentRequest $request, Shipment $shipment): JsonResponse
+    public function update(ShipmentRequest $request, Shipment $shipment)
     {
-        $shipment = $this->shipmentService->update($shipment, $request->validated());
+        return $this->handleRequest(function () use ($request, $shipment) {
+            $shipment = $this->shipmentService->update($shipment, $request->validated());
 
-        return response()->json([
-            'status'  => true,
-            'message' => getMessage(UPDATED_SUCCESSFULLY),
-            'data'    => new ShipmentResource($shipment),
-        ]);
+            return ApiResponse::success(new ShipmentResource($shipment), 'Shipment updated successfully');
+        });
     }
 
-    public function destroy(Shipment $shipment): JsonResponse
+    public function destroy(Shipment $shipment)
     {
-        $this->shipmentService->destroy($shipment);
+        return $this->handleRequest(function () use ($shipment) {
+            $this->shipmentService->destroy($shipment);
 
-        return response()->json([
-            'status'  => true,
-            'message' => getMessage(DELETED_SUCCESSFULLY),
-        ]);
+            return ApiResponse::success(null, 'Shipment deleted successfully');
+        });
     }
 
-    public function dispatch(DispatchRequest $request, Shipment $shipment): JsonResponse
+    public function dispatch(DispatchRequest $request, Shipment $shipment)
     {
-        $shipment = $this->shipmentService->dispatch($shipment, $request->validated());
+        return $this->handleRequest(function () use ($request, $shipment) {
+            $shipment = $this->shipmentService->dispatch($shipment, $request->validated());
 
-        return response()->json([
-            'status'  => true,
-            'message' => 'Shipment dispatched successfully',
-            'data'    => new ShipmentResource($shipment),
-        ]);
+            return ApiResponse::success(new ShipmentResource($shipment), 'Shipment dispatched successfully');
+        });
     }
 
-    public function receive(GoodsReceiptRequest $request, Shipment $shipment): JsonResponse
+    public function receive(GoodsReceiptRequest $request, Shipment $shipment)
     {
-        $shipment = $this->shipmentService->receiveAtArat($shipment, $request->validated());
+        return $this->handleRequest(function () use ($request, $shipment) {
+            $shipment = $this->shipmentService->receiveAtArat($shipment, $request->validated());
 
-        return response()->json([
-            'status'  => true,
-            'message' => 'Goods receipt at arat recorded successfully',
-            'data'    => new ShipmentResource($shipment),
-        ]);
+            return ApiResponse::success(new ShipmentResource($shipment), 'Goods receipt at arat recorded successfully');
+        });
     }
 
-    public function challan(Request $request, Shipment $shipment): JsonResponse|Response
+    public function challan(Request $request, Shipment $shipment)
     {
         if ($request->query('format') === 'html' || $request->is('*challan-pdf')) {
             $html = $this->shipmentService->renderChallanHtml($shipment);
             return response($html)->header('Content-Type', 'text/html; charset=UTF-8');
         }
 
-        $challanData = $this->shipmentService->getChallan($shipment);
+        return $this->handleRequest(function () use ($shipment) {
+            $challanData = $this->shipmentService->getChallan($shipment);
 
-        return response()->json([
-            'status'  => true,
-            'message' => getMessage(DATA_FETCH_SUCCESSFULLY),
-            'data'    => $challanData,
-        ]);
+            return ApiResponse::success($challanData, 'Delivery challan retrieved successfully');
+        });
     }
 
-    public function sales(Shipment $shipment): JsonResponse
+    public function sales(Shipment $shipment)
     {
-        $sales = $this->shipmentService->getSales($shipment);
+        return $this->handleRequest(function () use ($shipment) {
+            $sales = $this->shipmentService->getSales($shipment);
 
-        return response()->json([
-            'status'  => true,
-            'message' => getMessage(DATA_FETCH_SUCCESSFULLY),
-            'data'    => ShipmentSaleResource::collection($sales),
-        ]);
+            return ApiResponse::success(ShipmentSaleResource::collection($sales), 'Shipment sales retrieved successfully');
+        });
     }
 
-    public function storeSale(ShipmentSaleRequest $request, Shipment $shipment): JsonResponse
+    public function storeSale(ShipmentSaleRequest $request, Shipment $shipment)
     {
-        $sale = $this->shipmentService->recordSale($shipment, $request->validated());
+        return $this->handleRequest(function () use ($request, $shipment) {
+            $sale = $this->shipmentService->recordSale($shipment, $request->validated());
 
-        return response()->json([
-            'status'  => true,
-            'message' => 'Sale recorded successfully',
-            'data'    => new ShipmentSaleResource($sale),
-        ], 201);
+            return ApiResponse::success(new ShipmentSaleResource($sale), 'Sale recorded successfully', 201);
+        });
     }
 
-    public function stock(Shipment $shipment): JsonResponse
+    public function stock(Shipment $shipment)
     {
-        $stockData = $this->shipmentService->getStockBalance($shipment);
+        return $this->handleRequest(function () use ($shipment) {
+            $stockData = $this->shipmentService->getStockBalance($shipment);
 
-        return response()->json([
-            'status'  => true,
-            'message' => getMessage(DATA_FETCH_SUCCESSFULLY),
-            'data'    => $stockData,
-        ]);
+            return ApiResponse::success($stockData, 'Shipment stock balance retrieved successfully');
+        });
+    }
+
+    public function settlementPreview(Shipment $shipment)
+    {
+        return $this->handleRequest(function () use ($shipment) {
+            $preview = $this->shipmentService->getSettlementPreview($shipment);
+
+            return ApiResponse::success($preview, 'Consignment settlement preview calculated successfully');
+        });
     }
 }
