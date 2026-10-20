@@ -231,3 +231,18 @@ if (!function_exists('supplier_payment_status_label')) {
         return $labels[$status] ?? 'Unknown';
     }
 }
+if (!function_exists('shipment_status_label')) {
+    function shipment_status_label(int|null $status): string
+    {
+        $labels = [
+            SHIPMENT_STATUS_DRAFT       => __('Draft'),
+            SHIPMENT_STATUS_DISPATCHED  => __('Dispatched'),
+            SHIPMENT_STATUS_RECEIVED    => __('Received'),
+            SHIPMENT_STATUS_SELLING     => __('Selling'),
+            SHIPMENT_STATUS_SETTLED     => __('Settled'),
+            SHIPMENT_STATUS_DISPUTED    => __('Disputed'),
+        ];
+
+        return $labels[$status] ?? 'Unknown';
+    }
+}

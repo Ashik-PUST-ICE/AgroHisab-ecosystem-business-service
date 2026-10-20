@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\Business\Market\MarketController;
 use App\Http\Controllers\Api\V1\Business\ProductCategory\ProductCategoryController;
 use App\Http\Controllers\Api\V1\Business\ProductController;
 use App\Http\Controllers\Api\V1\Business\Purchase\PurchaseController;
+use App\Http\Controllers\Api\V1\Business\Shipment\ShipmentController;
 use App\Http\Controllers\Api\V1\Business\Supplier\SupplierController;
 use App\Http\Controllers\Api\V1\Business\Transporter\TransporterController;
 use App\Http\Controllers\Api\V1\Business\Unit\UnitConversionController;
@@ -115,5 +116,16 @@ Route::middleware('auth.jwt')->group(function () {
         Route::post('{purchase}/receive', [PurchaseController::class, 'receive']);
         Route::get('{purchase}/payments', [PurchaseController::class, 'payments']);
         Route::post('{purchase}/payments', [PurchaseController::class, 'storePayment']);
+    });
+
+    // API 10: Shipments + Dispatch + Goods Receipt
+    Route::prefix('shipments')->group(function () {
+        Route::get('/', [ShipmentController::class, 'index']);
+        Route::post('/', [ShipmentController::class, 'store']);
+        Route::get('{shipment}', [ShipmentController::class, 'show']);
+        Route::put('{shipment}', [ShipmentController::class, 'update']);
+        Route::delete('{shipment}', [ShipmentController::class, 'destroy']);
+        Route::post('{shipment}/dispatch', [ShipmentController::class, 'dispatch']);
+        Route::post('{shipment}/receive', [ShipmentController::class, 'receive']);
     });
 });
