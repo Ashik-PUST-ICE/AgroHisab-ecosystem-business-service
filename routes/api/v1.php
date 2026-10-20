@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\Business\ExpenseCategory\ExpenseCategoryControll
 use App\Http\Controllers\Api\V1\Business\Market\MarketController;
 use App\Http\Controllers\Api\V1\Business\ProductCategory\ProductCategoryController;
 use App\Http\Controllers\Api\V1\Business\ProductController;
+use App\Http\Controllers\Api\V1\Business\Purchase\PurchaseController;
 use App\Http\Controllers\Api\V1\Business\Supplier\SupplierController;
 use App\Http\Controllers\Api\V1\Business\Transporter\TransporterController;
 use App\Http\Controllers\Api\V1\Business\Unit\UnitConversionController;
@@ -101,5 +102,15 @@ Route::middleware('auth.jwt')->group(function () {
         Route::get('{transporter}', [TransporterController::class, 'show']);
         Route::put('{transporter}', [TransporterController::class, 'update']);
         Route::delete('{transporter}', [TransporterController::class, 'destroy']);
+    });
+
+    // API 9: Purchases & Purchase Stock Receipt
+    Route::prefix('purchases')->group(function () {
+        Route::get('/', [PurchaseController::class, 'index']);
+        Route::post('/', [PurchaseController::class, 'store']);
+        Route::get('{purchase}', [PurchaseController::class, 'show']);
+        Route::put('{purchase}', [PurchaseController::class, 'update']);
+        Route::delete('{purchase}', [PurchaseController::class, 'destroy']);
+        Route::post('{purchase}/receive', [PurchaseController::class, 'receive']);
     });
 });

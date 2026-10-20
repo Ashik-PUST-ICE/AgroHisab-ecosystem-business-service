@@ -197,3 +197,22 @@ if (!function_exists('account_type_label')) {
         return $labels[$type] ?? 'Unknown';
     }
 }
+// Purchase Statuses
+const PURCHASE_STATUS_DRAFT     = 0;
+const PURCHASE_STATUS_CONFIRMED = 1;
+const PURCHASE_STATUS_RECEIVED  = 2;
+const PURCHASE_STATUS_CANCELLED = 3;
+
+if (!function_exists('purchase_status_label')) {
+    function purchase_status_label(int|null $status): string
+    {
+        $labels = [
+            PURCHASE_STATUS_DRAFT     => __('Draft'),
+            PURCHASE_STATUS_CONFIRMED => __('Confirmed'),
+            PURCHASE_STATUS_RECEIVED  => __('Received'),
+            PURCHASE_STATUS_CANCELLED => __('Cancelled'),
+        ];
+
+        return $labels[$status] ?? 'Unknown';
+    }
+}
