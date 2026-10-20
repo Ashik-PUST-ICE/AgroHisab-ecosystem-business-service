@@ -246,3 +246,37 @@ if (!function_exists('shipment_status_label')) {
         return $labels[$status] ?? 'Unknown';
     }
 }
+if (!function_exists('account_txn_type_label')) {
+    function account_txn_type_label(int $type): string
+    {
+        $labels = [
+            1  => 'Opening Balance',
+            2  => 'Deposit',
+            3  => 'Withdrawal',
+            4  => 'Transfer In',
+            5  => 'Transfer Out',
+            6  => 'Supplier Payment',
+            7  => 'Expense Payment',
+            8  => 'Aratdar Receipt',
+            9  => 'Owner Capital',
+            10 => 'Owner Withdrawal',
+        ];
+        return $labels[$type] ?? 'Other';
+    }
+}
+
+if (!function_exists('stock_movement_type_label')) {
+    function stock_movement_type_label(int $type): string
+    {
+        $labels = [
+            1 => 'Purchase',
+            2 => 'Dispatch',
+            3 => 'Received',
+            4 => 'Sale',
+            5 => 'Return',
+            6 => 'Damage/Loss',
+            7 => 'Adjustment',
+        ];
+        return $labels[$type] ?? 'Unknown';
+    }
+}

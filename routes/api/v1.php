@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Business\Account\AccountController;
+use App\Http\Controllers\Api\V1\Business\Account\AccountLedgerController;
 use App\Http\Controllers\Api\V1\Business\Aratdar\AgreementController;
 use App\Http\Controllers\Api\V1\Business\Aratdar\AratdarController;
 use App\Http\Controllers\Api\V1\Business\Aratdar\AratdarLedgerController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\Api\V1\Business\ProductController;
 use App\Http\Controllers\Api\V1\Business\Purchase\PurchaseController;
 use App\Http\Controllers\Api\V1\Business\Report\ReportController;
 use App\Http\Controllers\Api\V1\Business\Shipment\ShipmentController;
+use App\Http\Controllers\Api\V1\Business\Stock\StockMovementController;
 use App\Http\Controllers\Api\V1\Business\Supplier\SupplierController;
 use App\Http\Controllers\Api\V1\Business\System\BackupController;
 use App\Http\Controllers\Api\V1\Business\Transporter\TransporterController;
@@ -26,9 +28,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth.jwt')->group(function () {
 
-    // -------------------------------------------------------------------------
     // API 1: Units & Unit Conversions
-    // -------------------------------------------------------------------------
     Route::prefix('units')->group(function () {
         Route::get('/', [UnitController::class, 'index']);
         Route::post('/', [UnitController::class, 'store']);
@@ -36,7 +36,6 @@ Route::middleware('auth.jwt')->group(function () {
         Route::put('{unit}', [UnitController::class, 'update']);
         Route::delete('{unit}', [UnitController::class, 'destroy']);
     });
-
     Route::prefix('unit-conversions')->group(function () {
         Route::get('/', [UnitConversionController::class, 'index']);
         Route::post('/', [UnitConversionController::class, 'store']);
@@ -46,9 +45,7 @@ Route::middleware('auth.jwt')->group(function () {
         Route::delete('{conversion}', [UnitConversionController::class, 'destroy']);
     });
 
-    // -------------------------------------------------------------------------
     // API 2: Product Categories & Products
-    // -------------------------------------------------------------------------
     Route::prefix('product-categories')->group(function () {
         Route::get('/', [ProductCategoryController::class, 'index']);
         Route::post('/', [ProductCategoryController::class, 'store']);
@@ -56,7 +53,6 @@ Route::middleware('auth.jwt')->group(function () {
         Route::put('{productCategory}', [ProductCategoryController::class, 'update']);
         Route::delete('{productCategory}', [ProductCategoryController::class, 'destroy']);
     });
-
     Route::prefix('products')->group(function () {
         Route::get('/', [ProductController::class, 'index']);
         Route::post('/', [ProductController::class, 'store']);
@@ -65,9 +61,7 @@ Route::middleware('auth.jwt')->group(function () {
         Route::delete('{product}', [ProductController::class, 'destroy']);
     });
 
-    // -------------------------------------------------------------------------
     // API 3: Suppliers + Ledger
-    // -------------------------------------------------------------------------
     Route::prefix('suppliers')->group(function () {
         Route::get('/', [SupplierController::class, 'index']);
         Route::post('/', [SupplierController::class, 'store']);
@@ -77,27 +71,19 @@ Route::middleware('auth.jwt')->group(function () {
         Route::get('{supplier}/ledger', [SupplierController::class, 'ledger']);
     });
 
-    // -------------------------------------------------------------------------
-    // API 4: Aratdars + Ledger (API 18) + Commission Agreement (API 19)
-    // -------------------------------------------------------------------------
+    // API 4: Aratdars + Ledger (18) + Agreement (19)
     Route::prefix('aratdars')->group(function () {
         Route::get('/', [AratdarController::class, 'index']);
         Route::post('/', [AratdarController::class, 'store']);
         Route::get('{aratdar}', [AratdarController::class, 'show']);
         Route::put('{aratdar}', [AratdarController::class, 'update']);
         Route::delete('{aratdar}', [AratdarController::class, 'destroy']);
-
-        // API 18: Aratdar Ledger — all sales, commission, remittances, balance
         Route::get('{aratdar}/ledger', [AratdarLedgerController::class, 'ledger']);
-
-        // API 19: Commission Agreement (show & update)
         Route::get('{aratdar}/agreement', [AgreementController::class, 'show']);
         Route::put('{aratdar}/agreement', [AgreementController::class, 'update']);
     });
 
-    // -------------------------------------------------------------------------
     // API 5: Markets
-    // -------------------------------------------------------------------------
     Route::prefix('markets')->group(function () {
         Route::get('/', [MarketController::class, 'index']);
         Route::post('/', [MarketController::class, 'store']);
@@ -106,20 +92,20 @@ Route::middleware('auth.jwt')->group(function () {
         Route::delete('{market}', [MarketController::class, 'destroy']);
     });
 
-    // -------------------------------------------------------------------------
-    // API 6: Financial Accounts
-    // -------------------------------------------------------------------------
+    // API 6: Financial Accounts + Ledger (22) + Transfer (22)
     Route::prefix('accounts')->group(function () {
         Route::get('/', [AccountController::class, 'index']);
         Route::post('/', [AccountController::class, 'store']);
         Route::get('{account}', [AccountController::class, 'show']);
         Route::put('{account}', [AccountController::class, 'update']);
         Route::delete('{account}', [AccountController::class, 'destroy']);
+        // API 22: Account ledger & internal transfer
+        Route::get('{account}/ledger', [AccountLedgerController::class, 'ledger']);
     });
+    // API 22: Internal transfer (not under /{account} because it involves two accounts)
+    Route::post('accounts/transfer', [AccountLedgerController::class, 'transfer']);
 
-    // -------------------------------------------------------------------------
     // API 7: Expense Categories
-    // -------------------------------------------------------------------------
     Route::prefix('expense-categories')->group(function () {
         Route::get('/', [ExpenseCategoryController::class, 'index']);
         Route::post('/', [ExpenseCategoryController::class, 'store']);
@@ -128,9 +114,7 @@ Route::middleware('auth.jwt')->group(function () {
         Route::delete('{expenseCategory}', [ExpenseCategoryController::class, 'destroy']);
     });
 
-    // -------------------------------------------------------------------------
     // API 8: Transporters
-    // -------------------------------------------------------------------------
     Route::prefix('transporters')->group(function () {
         Route::get('/', [TransporterController::class, 'index']);
         Route::post('/', [TransporterController::class, 'store']);
@@ -139,9 +123,7 @@ Route::middleware('auth.jwt')->group(function () {
         Route::delete('{transporter}', [TransporterController::class, 'destroy']);
     });
 
-    // -------------------------------------------------------------------------
-    // API 9: Purchases + Stock Receipt + Supplier Payments
-    // -------------------------------------------------------------------------
+    // API 9: Purchases + Receipt + Supplier Payments
     Route::prefix('purchases')->group(function () {
         Route::get('/', [PurchaseController::class, 'index']);
         Route::post('/', [PurchaseController::class, 'store']);
@@ -153,9 +135,7 @@ Route::middleware('auth.jwt')->group(function () {
         Route::post('{purchase}/payments', [PurchaseController::class, 'storePayment']);
     });
 
-    // -------------------------------------------------------------------------
     // API 10: Shipments + Dispatch + Receipt + Challan + Sales + Stock + Settlement
-    // -------------------------------------------------------------------------
     Route::prefix('shipments')->group(function () {
         Route::get('/', [ShipmentController::class, 'index']);
         Route::post('/', [ShipmentController::class, 'store']);
@@ -174,9 +154,7 @@ Route::middleware('auth.jwt')->group(function () {
         Route::get('{shipment}/settlement', [ShipmentController::class, 'settlement']);
     });
 
-    // -------------------------------------------------------------------------
     // API 11: Aratdar Remittances & Allocations
-    // -------------------------------------------------------------------------
     Route::prefix('payments')->group(function () {
         Route::get('aratdar-remittance', [AratdarPaymentController::class, 'index']);
         Route::post('aratdar-remittance', [AratdarPaymentController::class, 'store']);
@@ -184,27 +162,24 @@ Route::middleware('auth.jwt')->group(function () {
         Route::post('{remittance}/allocate', [AratdarPaymentController::class, 'allocate']);
     });
 
-    // -------------------------------------------------------------------------
-    // API 12: Dashboard Overview Metrics
-    // -------------------------------------------------------------------------
+    // API 12: Dashboard
     Route::prefix('dashboard')->group(function () {
         Route::get('metrics', [DashboardController::class, 'metrics']);
     });
 
-    // -------------------------------------------------------------------------
-    // API 13: Reports
-    // -------------------------------------------------------------------------
+    // API 13 + 23: Reports
     Route::prefix('reports')->group(function () {
+        // Existing
         Route::get('profitability', [ReportController::class, 'profitability']);
         Route::get('cashbook', [ReportController::class, 'cashbook']);
         Route::get('inventory-valuation', [ReportController::class, 'inventoryValuation']);
+        // API 23: New extended reports
+        Route::get('receivables', [ReportController::class, 'receivables']);
+        Route::get('payables', [ReportController::class, 'payables']);
+        Route::get('sales-by-product', [ReportController::class, 'salesByProduct']);
     });
 
-    // -------------------------------------------------------------------------
-    // API 14: Documents & Attachments (FileManagerService backed — dual mode)
-    //   POST with multipart file  → FileManagerService proxies to auth-service upload
-    //   POST with file_path (str) → path pre-uploaded by frontend to auth-service
-    // -------------------------------------------------------------------------
+    // API 14: Documents
     Route::prefix('documents')->group(function () {
         Route::get('/', [DocumentController::class, 'index']);
         Route::post('/', [DocumentController::class, 'store']);
@@ -212,9 +187,7 @@ Route::middleware('auth.jwt')->group(function () {
         Route::delete('{document}', [DocumentController::class, 'destroy']);
     });
 
-    // -------------------------------------------------------------------------
-    // API 15: Expenses & Consignment Charges
-    // -------------------------------------------------------------------------
+    // API 15: Expenses
     Route::prefix('expenses')->group(function () {
         Route::get('/', [ExpenseController::class, 'index']);
         Route::post('/', [ExpenseController::class, 'store']);
@@ -223,27 +196,27 @@ Route::middleware('auth.jwt')->group(function () {
         Route::delete('{expense}', [ExpenseController::class, 'destroy']);
     });
 
-    // -------------------------------------------------------------------------
-    // API 16: Audit Logs (read-only)
-    // -------------------------------------------------------------------------
+    // API 16: Audit Logs
     Route::prefix('audit-logs')->group(function () {
         Route::get('/', [AuditLogController::class, 'index']);
     });
 
-    // -------------------------------------------------------------------------
-    // API 17: System Backups (local JSON dump of all trading tables)
-    // -------------------------------------------------------------------------
+    // API 17: System Backups
     Route::prefix('system/backups')->group(function () {
         Route::get('/', [BackupController::class, 'index']);
         Route::post('/', [BackupController::class, 'store']);
     });
 
-    // -------------------------------------------------------------------------
     // API 20: Notifications
-    // -------------------------------------------------------------------------
     Route::prefix('notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);
         Route::post('read-all', [NotificationController::class, 'markAllRead']);
         Route::post('{notification}/read', [NotificationController::class, 'markRead']);
+    });
+
+    // API 21: Stock Movements Ledger + Balance
+    Route::prefix('stock-movements')->group(function () {
+        Route::get('/', [StockMovementController::class, 'index']);
+        Route::get('balance', [StockMovementController::class, 'balance']);
     });
 });
