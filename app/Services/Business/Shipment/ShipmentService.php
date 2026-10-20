@@ -605,9 +605,21 @@ class ShipmentService
         $freightAmount = (float) $shipment->freight_amount;
         $freightPaidBy = $shipment->freight_paid_by;
 
-        // Linked expenses: কুলি/লেবার খরচ, বস্তা খরচ, টোল, আনলোডিং ইত্যাদি
+        // Linked expenses from Expense relation + dynamic JSON expense_breakdown (বস্তা, কুলি, ভাড়া, টোল ইত্যাদি)
         $linkedOwnerExpenses = (float) $shipment->expenses->where('paid_by', 'owner')->sum('amount');
         $linkedAratdarExpenses = (float) $shipment->expenses->where('paid_by', 'aratdar')->sum('amount');
+
+        if (!empty($shipment->expense_breakdown) && is_array($shipment->expense_breakdown)) {
+            foreach ($shipment->expense_breakdown as $item) {
+                $amt = (float) ($item['amount'] ?? 0);
+                $payer = $item['paid_by'] ?? 'owner';
+                if ($payer === 'owner') {
+                    $linkedOwnerExpenses += $amt;
+                } else {
+                    $linkedAratdarExpenses += $amt;
+                }
+            }
+        }
 
         $totalRemitted = (float) $shipment->allocations->sum('amount');
 

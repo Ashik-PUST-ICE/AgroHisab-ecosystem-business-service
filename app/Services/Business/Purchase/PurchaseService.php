@@ -165,6 +165,77 @@ class PurchaseService
         });
     }
 
+
+    /**
+     * Quick Procurement Calculator (কাঁচামাল ক্রয় ক্যালকুলেটর):
+     * কাঁচা ওজন (Actual KG), বাদ/কাটতি (Deducted KG), মণের দর (Rate per Mon) দিয়ে
+     * তাত্ক্ষণিক প্রতি কেজি দর, কৃষকের পাওনা টাকা হিসাব করে এবং ঐচ্ছিকভাবে ১ ক্লিকে পারচেজ সেভ করে।
+     */
+    public function calculateProcurement(array $data): array
+    {
+        $actualWeight = (float) $data['actual_weight'];
+        $deductedWeight = (float) ($data['deducted_weight'] ?? 0);
+        $payableWeight = max(0, round($actualWeight - $deductedWeight, 4));
+
+        $monSize = (float) ($data['mon_size'] ?? 40.00);
+        if ($monSize <= 0) $monSize = 40.00;
+
+        $monRate = (float) $data['mon_rate'];
+        $ratePerKg = round($monRate / $monSize, 4);
+
+        $totalProduceValue = round($payableWeight * $ratePerKg, 2);
+        $paidAmount = (float) ($data['paid_amount'] ?? 0);
+        $dueAmount = max(0, round($totalProduceValue - $paidAmount, 2));
+
+        $maundCount = round($payableWeight / $monSize, 2);
+
+        $summaryBn = "কাঁচা ওজন: {$actualWeight} কেজি | কাটতি/বাদ: {$deductedWeight} কেজি | প্রদেয় ওজন: {$payableWeight} কেজি ({$maundCount} মণ)। "
+            . "দর: {$monRate} টাকা/মণ ({$ratePerKg} টাকা/কেজি)। মোট দাম: {$totalProduceValue} টাকা। "
+            . "পরিশোধ: {$paidAmount} টাকা, বাকি: {$dueAmount} টাকা।";
+
+        $response = [
+            'actual_weight'       => $actualWeight,
+            'deducted_weight'     => $deductedWeight,
+            'payable_weight'      => $payableWeight,
+            'mon_rate'            => $monRate,
+            'mon_size'            => $monSize,
+            'rate_per_kg'         => $ratePerKg,
+            'total_produce_value' => $totalProduceValue,
+            'paid_amount'         => $paidAmount,
+            'due_amount'          => $dueAmount,
+            'summary_text_bn'     => $summaryBn,
+        ];
+
+        // If requested to save as purchase on the fly
+        if (!empty($data['save_purchase']) && !empty($data['supplier_id']) && !empty($data['product_id'])) {
+            $purchase = $this->store([
+                'supplier_id'   => $data['supplier_id'],
+                'purchase_date' => now()->toDateString(),
+                'paid_amount'   => $paidAmount,
+                'items'         => [
+                    [
+                        'product_id'      => $data['product_id'],
+                        'actual_weight'   => $actualWeight,
+                        'deducted_weight' => $deductedWeight,
+                        'gross_weight'    => $actualWeight,
+                        'tare_weight'     => $deductedWeight,
+                        'net_weight'      => $payableWeight,
+                        'mon_rate'        => $monRate,
+                        'mon_size'        => $monSize,
+                        'unit_rate'       => $ratePerKg,
+                        'line_total'      => $totalProduceValue,
+                        'notes'           => "কাটতি: {$deductedWeight} কেজি বাদ",
+                    ]
+                ],
+                'notes'         => "ক্যালকুলেটর দিয়ে তৈরি ক্রয়: {$actualWeight} কেজিতে {$deductedWeight} কেজি কাটতি",
+            ]);
+
+            $response['purchase'] = $purchase;
+        }
+
+        return $response;
+    }
+
     protected function generatePurchaseNumber(): string
     {
         $prefix = 'PUR-' . date('Ymd') . '-';

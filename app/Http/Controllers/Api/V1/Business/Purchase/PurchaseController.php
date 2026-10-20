@@ -20,6 +20,29 @@ class PurchaseController extends Controller
         protected SupplierPaymentService $supplierPaymentService
     ) {}
 
+    /**
+     * POST /api/v1/purchases/calculate
+     * Quick Procurement Calculator (কাঁচা ওজন, কাটতি বাদ, মণের দর -> নগদ টাকার হিসাব ও ঐচ্ছিক সেভ).
+     */
+    public function calculate(Request $request)
+    {
+        return $this->handleRequest(function () use ($request) {
+            $data = $request->validate([
+                'actual_weight'   => 'required|numeric|min:0.0001',
+                'deducted_weight' => 'nullable|numeric|min:0',
+                'mon_rate'        => 'required|numeric|min:0.0001',
+                'mon_size'        => 'nullable|numeric|min:1',
+                'paid_amount'     => 'nullable|numeric|min:0',
+                'product_id'      => 'nullable|integer|exists:products,id',
+                'supplier_id'     => 'nullable|integer|exists:suppliers,id',
+                'save_purchase'   => 'nullable|boolean',
+            ]);
+
+            $result = $this->purchaseService->calculateProcurement($data);
+
+            return ApiResponse::success($result, 'Procurement calculated successfully');
+        });
+    }
     public function index(Request $request)
     {
         return $this->handleRequest(function () use ($request) {

@@ -12,12 +12,16 @@ class PurchaseItem extends Model
     protected function casts(): array
     {
         return [
-            'bag_count'    => 'integer',
-            'gross_weight' => 'decimal:4',
-            'tare_weight'  => 'decimal:4',
-            'net_weight'   => 'decimal:4',
-            'unit_rate'    => 'decimal:2',
-            'line_total'   => 'decimal:2',
+            'bag_count'       => 'integer',
+            'actual_weight'   => 'decimal:4',
+            'deducted_weight' => 'decimal:4',
+            'gross_weight'    => 'decimal:4',
+            'tare_weight'     => 'decimal:4',
+            'net_weight'      => 'decimal:4',
+            'mon_rate'        => 'decimal:2',
+            'mon_size'        => 'decimal:2',
+            'unit_rate'       => 'decimal:2',
+            'line_total'      => 'decimal:2',
         ];
     }
 

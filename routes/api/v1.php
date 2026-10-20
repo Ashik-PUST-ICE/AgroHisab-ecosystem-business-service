@@ -131,6 +131,7 @@ Route::middleware('auth.jwt')->group(function () {
 
     // ── API 9: Purchases ────────────────────────────────────
     Route::prefix('purchases')->group(function () {
+        Route::post('calculate', [PurchaseController::class, 'calculate']);
         Route::get('/', [PurchaseController::class, 'index']);
         Route::post('/', [PurchaseController::class, 'store']);
         Route::get('{purchase}', [PurchaseController::class, 'show']);
