@@ -2,7 +2,6 @@
 
 namespace App\Services\Modules\Finance;
 
-use App\Enums\Commons\Status\StatusEnum;
 use App\Models\AccountType;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -66,11 +65,11 @@ class AccountTypeService
     public function toggleStatus(string $id): AccountType
     {
         $AccountType = $this->show($id);
-        $AccountType->status = $AccountType->status === StatusEnum::ACTIVE
-            ? StatusEnum::INACTIVE
-            : StatusEnum::ACTIVE;
+        $AccountType->status = $AccountType->status === STATUS_ACTIVE
+            ? STATUS_INACTIVE
+            : STATUS_ACTIVE;
         $AccountType->save();
-        log_activity('Toggled AccountType status to '.($AccountType->status->label()), authId(), null, 'account_type', 'updated', $AccountType->getChanges() + ['id' => $AccountType->id]);
+        log_activity('Toggled AccountType status to '.status_label($AccountType->status), authId(), null, 'account_type', 'updated', $AccountType->getChanges() + ['id' => $AccountType->id]);
 
         return $AccountType;
     }

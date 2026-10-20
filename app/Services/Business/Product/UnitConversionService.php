@@ -51,7 +51,7 @@ class UnitConversionService
 
         $direct = UnitConversion::where('from_unit_id', $fromUnitId)
             ->where('to_unit_id', $toUnitId)
-            ->where('status', 1)
+            ->where('status', STATUS_ACTIVE)
             ->first();
 
         if ($direct) {
@@ -60,7 +60,7 @@ class UnitConversionService
 
         $inverse = UnitConversion::where('from_unit_id', $toUnitId)
             ->where('to_unit_id', $fromUnitId)
-            ->where('status', 1)
+            ->where('status', STATUS_ACTIVE)
             ->first();
 
         if ($inverse && (float) $inverse->factor > 0) {

@@ -75,6 +75,11 @@ const ACCOUNT_NAGAD = 4;
 const ACCOUNT_ROCKET = 5;
 const ACCOUNT_OTHER = 6;
 
+// Market Types
+const MARKET_SOURCE = 1;
+const MARKET_DESTINATION = 2;
+const MARKET_BOTH = 3;
+
 if (!function_exists("getStatus")) {
     function getStatus($input = null)
     {

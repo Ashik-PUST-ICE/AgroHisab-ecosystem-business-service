@@ -2,7 +2,6 @@
 
 namespace App\Services\Modules\Inventory;
 
-use App\Enums\Commons\Status\StatusEnum;
 use App\Models\Product;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -78,11 +77,11 @@ class ProductService
     public function toggleStatus(string $id): Product
     {
         $product = $this->show($id);
-        $product->status = $product->status === StatusEnum::ACTIVE
-            ? StatusEnum::INACTIVE
-            : StatusEnum::ACTIVE;
+        $product->status = $product->status === STATUS_ACTIVE
+            ? STATUS_INACTIVE
+            : STATUS_ACTIVE;
         $product->save();
-        log_activity('Toggled product status to ' . ($product->status->label()), authId(), null, 'product', 'updated', $product->getChanges() + ['id' => $product->id]);
+        log_activity('Toggled product status to '.status_label($product->status), authId(), null, 'product', 'updated', $product->getChanges() + ['id' => $product->id]);
 
         return $product;
     }
@@ -98,7 +97,7 @@ class ProductService
         $query->when(isset($filters['status']), function ($q) use ($filters) {
             $q->where('status', $filters['status']);
         }, function ($q) {
-            $q->where('status', StatusEnum::ACTIVE);
+            $q->where('status', STATUS_ACTIVE);
         });
 
         $query->when(isset($filters['category']), function ($q) use ($filters) {

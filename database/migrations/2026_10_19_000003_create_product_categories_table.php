@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->tinyInteger('status')->default(1)->comment('1: Active, 0: Inactive');
+            $table->tinyInteger('status')->default(STATUS_ACTIVE)->comment(STATUS_ACTIVE.': Active, '.STATUS_INACTIVE.': Inactive');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->timestamps();
         });

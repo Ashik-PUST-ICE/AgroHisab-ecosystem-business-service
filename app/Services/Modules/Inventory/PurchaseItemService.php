@@ -2,7 +2,6 @@
 
 namespace App\Services\Modules\Inventory;
 
-use App\Enums\Commons\Status\StatusEnum;
 use App\Models\PurchaseItem;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -77,11 +76,11 @@ class PurchaseItemService
     public function toggleStatus(string $id): PurchaseItem
     {
         $purchaseItem = $this->show($id);
-        $purchaseItem->status = $purchaseItem->status === StatusEnum::ACTIVE
-            ? StatusEnum::INACTIVE
-            : StatusEnum::ACTIVE;
+        $purchaseItem->status = $purchaseItem->status === STATUS_ACTIVE
+            ? STATUS_INACTIVE
+            : STATUS_ACTIVE;
         $purchaseItem->save();
-        log_activity('Toggled purchase item status to '.($purchaseItem->status->label()), authId(), null, 'purchase_item', 'updated', $purchaseItem->getChanges() + ['id' => $purchaseItem->id]);
+        log_activity('Toggled purchase item status to '.status_label($purchaseItem->status), authId(), null, 'purchase_item', 'updated', $purchaseItem->getChanges() + ['id' => $purchaseItem->id]);
 
         return $purchaseItem;
     }

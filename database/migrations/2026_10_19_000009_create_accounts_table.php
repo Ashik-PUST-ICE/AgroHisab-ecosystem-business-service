@@ -11,13 +11,13 @@ return new class extends Migration
         Schema::create('accounts', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->tinyInteger('type')->default(1)->comment('1: Cash, 2: Bank, 3: bKash, 4: Nagad, 5: Rocket, 6: Other');
+            $table->tinyInteger('type')->default(ACCOUNT_CASH)->comment(ACCOUNT_CASH.': Cash, '.ACCOUNT_BANK.': Bank, '.ACCOUNT_BKASH.': bKash, '.ACCOUNT_NAGAD.': Nagad, '.ACCOUNT_ROCKET.': Rocket, '.ACCOUNT_OTHER.': Other');
             $table->string('account_number')->nullable();
             $table->string('bank_name')->nullable();
             $table->string('branch')->nullable();
             $table->decimal('opening_balance', 15, 2)->default(0);
             $table->text('notes')->nullable();
-            $table->tinyInteger('status')->default(1)->comment('1: Active, 0: Inactive');
+            $table->tinyInteger('status')->default(STATUS_ACTIVE)->comment(STATUS_ACTIVE.': Active, '.STATUS_INACTIVE.': Inactive');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->timestamps();
         });

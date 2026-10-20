@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('code')->nullable();
-            $table->boolean('is_base_unit')->default(false);
-            $table->tinyInteger('status')->default(1)->comment('1: Active, 0: Inactive');
+            $table->tinyInteger('is_base_unit')->default(0);
+            $table->tinyInteger('status')->default(STATUS_ACTIVE)->comment(STATUS_ACTIVE.': Active, '.STATUS_INACTIVE.': Inactive');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->timestamps();
         });

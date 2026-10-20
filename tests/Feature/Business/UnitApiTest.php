@@ -20,18 +20,18 @@ class UnitApiTest extends TestCase
             'name' => 'Kilogram',
             'code' => 'kg',
             'is_base_unit' => true,
-            'status' => 1,
+            'status' => STATUS_ACTIVE,
         ]);
 
         $response->assertStatus(201)
             ->assertJsonPath('data.name', 'Kilogram')
             ->assertJsonPath('data.code', 'kg')
             ->assertJsonPath('data.is_base_unit', true)
-            ->assertJsonPath('data.status', 1);
+            ->assertJsonPath('data.status', STATUS_ACTIVE);
 
         $this->assertDatabaseHas('units', [
             'name' => 'Kilogram',
-            'status' => 1,
+            'status' => STATUS_ACTIVE,
         ]);
 
         $listResponse = $this->getJson('/api/v1/units');
@@ -43,15 +43,15 @@ class UnitApiTest extends TestCase
     {
         $this->authenticateJwt(userId: 1);
 
-        $mon = Unit::create(['name' => 'Maund / মন', 'code' => 'mon', 'status' => 1]);
-        $kg = Unit::create(['name' => 'Kilogram', 'code' => 'kg', 'is_base_unit' => true, 'status' => 1]);
+        $mon = Unit::create(['name' => 'Maund / মন', 'code' => 'mon', 'status' => STATUS_ACTIVE]);
+        $kg = Unit::create(['name' => 'Kilogram', 'code' => 'kg', 'is_base_unit' => true, 'status' => STATUS_ACTIVE]);
 
         $conversionResponse = $this->postJson('/api/v1/unit-conversions', [
             'from_unit_id' => $mon->id,
             'to_unit_id' => $kg->id,
             'factor' => 40.0000,
             'notes' => 'Standard Shailkupa conversion: 1 mon = 40 kg',
-            'status' => 1,
+            'status' => STATUS_ACTIVE,
         ]);
 
         $conversionResponse->assertStatus(201)

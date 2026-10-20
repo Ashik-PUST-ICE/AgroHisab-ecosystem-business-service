@@ -27,7 +27,7 @@ trait HasStatus
     /**
      * Shortcut for active status.
      */
-    public function scopeActive(Builder $query, int|string|array|null $status = 1, string $column = 'status'): Builder
+    public function scopeActive(Builder $query, int|string|array|null $status = STATUS_ACTIVE, string $column = 'status'): Builder
     {
         return $query->where($column, $status);
     }

@@ -2,7 +2,6 @@
 
 namespace App\Services\Modules\Finance;
 
-use App\Enums\Commons\Status\StatusEnum;
 use App\Models\CentralAccount;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -69,11 +68,11 @@ class CentralAccountService
     public function toggleStatus(string $id): CentralAccount
     {
         $centralAccount = $this->show($id);
-        $centralAccount->status = $centralAccount->status === StatusEnum::ACTIVE
-            ? StatusEnum::INACTIVE
-            : StatusEnum::ACTIVE;
+        $centralAccount->status = $centralAccount->status === STATUS_ACTIVE
+            ? STATUS_INACTIVE
+            : STATUS_ACTIVE;
         $centralAccount->save();
-        log_activity('Toggled CentralAccount status to '.($centralAccount->status->label()), authId(), null, 'central_account', 'updated', $centralAccount->getChanges() + ['id' => $centralAccount->id]);
+        log_activity('Toggled CentralAccount status to '.status_label($centralAccount->status), authId(), null, 'central_account', 'updated', $centralAccount->getChanges() + ['id' => $centralAccount->id]);
 
         return $centralAccount;
     }

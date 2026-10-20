@@ -2,7 +2,6 @@
 
 namespace App\Services\Modules\Finance;
 
-use App\Enums\Commons\Status\StatusEnum;
 use App\Models\Account;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -73,11 +72,11 @@ class AccountService
     public function status(string $id): Account
     {
         $Account = $this->show($id);
-        $Account->status = $Account->status === StatusEnum::ACTIVE
-            ? StatusEnum::INACTIVE
-            : StatusEnum::ACTIVE;
+        $Account->status = $Account->status === STATUS_ACTIVE
+            ? STATUS_INACTIVE
+            : STATUS_ACTIVE;
         $Account->save();
-        log_activity('Toggled Account status to '.($Account->status->label()), authId(), null, 'account', 'updated', $Account->getChanges() + ['id' => $Account->id]);
+        log_activity('Toggled Account status to '.status_label($Account->status), authId(), null, 'account', 'updated', $Account->getChanges() + ['id' => $Account->id]);
 
         return $Account;
     }

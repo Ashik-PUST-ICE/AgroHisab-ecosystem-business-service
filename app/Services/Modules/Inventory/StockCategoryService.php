@@ -2,7 +2,6 @@
 
 namespace App\Services\Modules\Inventory;
 
-use App\Enums\Commons\Status\StatusEnum;
 use App\Models\StockCategory;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -68,11 +67,11 @@ class StockCategoryService
     public function toggleStatus(string $id): StockCategory
     {
         $stockCategory = $this->show($id);
-        $stockCategory->status = $stockCategory->status === StatusEnum::ACTIVE
-            ? StatusEnum::INACTIVE
-            : StatusEnum::ACTIVE;
+        $stockCategory->status = $stockCategory->status === STATUS_ACTIVE
+            ? STATUS_INACTIVE
+            : STATUS_ACTIVE;
         $stockCategory->save();
-        log_activity('Toggled stock category status to '.($stockCategory->status->label()), authId(), null, 'stock_category', 'updated', $stockCategory->getChanges() + ['id' => $stockCategory->id]);
+        log_activity('Toggled stock category status to '.status_label($stockCategory->status), authId(), null, 'stock_category', 'updated', $stockCategory->getChanges() + ['id' => $stockCategory->id]);
 
         return $stockCategory;
     }
@@ -88,7 +87,7 @@ class StockCategoryService
         $query->when(isset($filters['status']), function ($q) use ($filters) {
             $q->where('status', $filters['status']);
         }, function ($q) {
-            $q->where('status', StatusEnum::ACTIVE);
+            $q->where('status', STATUS_ACTIVE);
         });
 
         $brands = $query->select('id', 'name', 'status')->orderBy('name')->get();

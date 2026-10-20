@@ -22,7 +22,7 @@ return new class extends Migration
             $table->tinyInteger('commission_type')->default(1)->comment('1: Percentage, 2: Fixed');
             $table->decimal('commission_value', 10, 4)->default(0);
             $table->string('commission_base')->nullable()->comment('gross_sales or net_sales');
-            $table->tinyInteger('status')->default(1)->comment('1: Active, 0: Inactive');
+            $table->tinyInteger('status')->default(STATUS_ACTIVE)->comment(STATUS_ACTIVE.': Active, '.STATUS_INACTIVE.': Inactive');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->timestamps();
             $table->softDeletes();

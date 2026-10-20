@@ -2,7 +2,6 @@
 
 namespace App\Services\Modules\Inventory;
 
-use App\Enums\Commons\Status\StatusEnum;
 use App\Models\Vendor;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -73,11 +72,11 @@ class VendorService
     public function toggleStatus(string $id): Vendor
     {
         $vendor = $this->show($id);
-        $vendor->status = $vendor->status === StatusEnum::ACTIVE
-            ? StatusEnum::INACTIVE
-            : StatusEnum::ACTIVE;
+        $vendor->status = $vendor->status === STATUS_ACTIVE
+            ? STATUS_INACTIVE
+            : STATUS_ACTIVE;
         $vendor->save();
-        log_activity('Toggled vendor status to '.($vendor->status->label()), authId(), null, 'vendor', 'updated', $vendor->getChanges() + ['id' => $vendor->id]);
+        log_activity('Toggled vendor status to '.status_label($vendor->status), authId(), null, 'vendor', 'updated', $vendor->getChanges() + ['id' => $vendor->id]);
 
         return $vendor;
     }
@@ -93,7 +92,7 @@ class VendorService
         $query->when(isset($filters['status']), function ($q) use ($filters) {
             $q->where('status', $filters['status']);
         }, function ($q) {
-            $q->where('status', StatusEnum::ACTIVE);
+            $q->where('status', STATUS_ACTIVE);
         });
 
         $brands = $query->select('id', 'first_name', 'last_name', 'status')->orderBy('first_name')->get();

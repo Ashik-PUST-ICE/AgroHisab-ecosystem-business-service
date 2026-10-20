@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('market')->nullable()->comment('Source market name');
             $table->string('district')->nullable();
             $table->text('notes')->nullable();
-            $table->tinyInteger('status')->default(1)->comment('1: Active, 0: Inactive');
+            $table->tinyInteger('status')->default(STATUS_ACTIVE)->comment(STATUS_ACTIVE.': Active, '.STATUS_INACTIVE.': Inactive');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->timestamps();
             $table->softDeletes();

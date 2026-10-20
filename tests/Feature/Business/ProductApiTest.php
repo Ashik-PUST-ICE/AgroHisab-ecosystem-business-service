@@ -20,16 +20,16 @@ class ProductApiTest extends TestCase
         $response = $this->postJson('/api/v1/product-categories', [
             'name' => 'পাট (Jute)',
             'description' => 'Tosha and Deshi Jute produce',
-            'status' => 1,
+            'status' => STATUS_ACTIVE,
         ]);
 
         $response->assertStatus(201)
             ->assertJsonPath('data.name', 'পাট (Jute)')
-            ->assertJsonPath('data.status', 1);
+            ->assertJsonPath('data.status', STATUS_ACTIVE);
 
         $this->assertDatabaseHas('product_categories', [
             'name' => 'পাট (Jute)',
-            'status' => 1,
+            'status' => STATUS_ACTIVE,
         ]);
 
         $list = $this->getJson('/api/v1/product-categories');
@@ -41,8 +41,8 @@ class ProductApiTest extends TestCase
     {
         $this->authenticateJwt(userId: 1);
 
-        $category = ProductCategory::create(['name' => 'পেঁয়াজ (Onion)', 'status' => 1]);
-        $mon = Unit::create(['name' => 'Maund / মন', 'code' => 'mon', 'status' => 1]);
+        $category = ProductCategory::create(['name' => 'পেঁয়াজ (Onion)', 'status' => STATUS_ACTIVE]);
+        $mon = Unit::create(['name' => 'Maund / মন', 'code' => 'mon', 'status' => STATUS_ACTIVE]);
 
         $response = $this->postJson('/api/v1/products', [
             'category_id' => $category->id,
@@ -50,7 +50,7 @@ class ProductApiTest extends TestCase
             'name' => 'তাহেরপুরী পেঁয়াজ',
             'variety' => 'Grade A / সুপার কোয়ালিটি',
             'description' => 'Locally sourced from Kumarkhali',
-            'status' => 1,
+            'status' => STATUS_ACTIVE,
         ]);
 
         $response->assertStatus(201)
@@ -58,13 +58,13 @@ class ProductApiTest extends TestCase
             ->assertJsonPath('data.variety', 'Grade A / সুপার কোয়ালিটি')
             ->assertJsonPath('data.category_id', $category->id)
             ->assertJsonPath('data.default_unit_id', $mon->id)
-            ->assertJsonPath('data.status', 1);
+            ->assertJsonPath('data.status', STATUS_ACTIVE);
 
         $this->assertDatabaseHas('products', [
             'name' => 'তাহেরপুরী পেঁয়াজ',
             'category_id' => $category->id,
             'default_unit_id' => $mon->id,
-            'status' => 1,
+            'status' => STATUS_ACTIVE,
         ]);
 
         // Filter by category_id

@@ -2,7 +2,6 @@
 
 namespace App\Services\Modules\Finance;
 
-use App\Enums\Commons\Status\StatusEnum;
 use App\Models\FinanceCategory;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -65,11 +64,11 @@ class FinanceCategoryService
     public function toggleStatus(string $id): FinanceCategory
     {
         $FinanceCategory = $this->show($id);
-        $FinanceCategory->status = $FinanceCategory->status === StatusEnum::ACTIVE
-            ? StatusEnum::INACTIVE
-            : StatusEnum::ACTIVE;
+        $FinanceCategory->status = $FinanceCategory->status === STATUS_ACTIVE
+            ? STATUS_INACTIVE
+            : STATUS_ACTIVE;
         $FinanceCategory->save();
-        log_activity('Toggled FinanceCategory status to '.($FinanceCategory->status->label()), authId(), null, 'finance_category', 'updated', $FinanceCategory->getChanges() + ['id' => $FinanceCategory->id]);
+        log_activity('Toggled FinanceCategory status to '.status_label($FinanceCategory->status), authId(), null, 'finance_category', 'updated', $FinanceCategory->getChanges() + ['id' => $FinanceCategory->id]);
 
         return $FinanceCategory;
     }

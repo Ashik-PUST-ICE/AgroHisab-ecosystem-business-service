@@ -84,7 +84,7 @@ class CollectedProductService
                 'warranty' => $collectedProduct->warranty,
                 'stock_date' => $collectedProduct->collected_date,
                 'quantity' => $collectedProduct->quantity,
-                'status' => 1,
+                'status' => STATUS_ACTIVE,
             ]);
 
             StockHistory::create([

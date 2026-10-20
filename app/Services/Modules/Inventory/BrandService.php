@@ -2,7 +2,6 @@
 
 namespace App\Services\Modules\Inventory;
 
-use App\Enums\Commons\Status\StatusEnum;
 use App\Models\Brand;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -68,11 +67,11 @@ class BrandService
     public function toggleStatus(string $id): Brand
     {
         $brand = $this->show($id);
-        $brand->status = $brand->status === StatusEnum::ACTIVE
-            ? StatusEnum::INACTIVE
-            : StatusEnum::ACTIVE;
+        $brand->status = $brand->status === STATUS_ACTIVE
+            ? STATUS_INACTIVE
+            : STATUS_ACTIVE;
         $brand->save();
-        log_activity('Toggled brand status to '.($brand->status->label()), authId(), null, 'brand', 'updated', $brand->getChanges() + ['id' => $brand->id]);
+        log_activity('Toggled brand status to '.status_label($brand->status), authId(), null, 'brand', 'updated', $brand->getChanges() + ['id' => $brand->id]);
 
         return $brand;
     }
@@ -88,7 +87,7 @@ class BrandService
         $query->when(isset($filters['status']), function ($q) use ($filters) {
             $q->where('status', $filters['status']);
         }, function ($q) {
-            $q->where('status', StatusEnum::ACTIVE);
+            $q->where('status', STATUS_ACTIVE);
         });
 
         $brands = $query->select('id', 'name', 'status')->orderBy('name')->get();
