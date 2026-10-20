@@ -18,7 +18,8 @@ class UnitRequest extends FormRequest
 
         return [
             'name' => [$isUpdate ? 'sometimes' : 'required', 'string', 'max:255'],
-            'code' => ['nullable', 'string', 'max:255'],
+            'code' => ['nullable', 'string', 'max:50'],
+            'is_base_unit' => ['nullable', 'boolean'],
             'status' => ['nullable', 'in:0,1'],
         ];
     }

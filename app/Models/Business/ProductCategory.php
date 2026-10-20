@@ -2,25 +2,22 @@
 
 namespace App\Models\Business;
 
-use App\Models\Traits\HasCompany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProductCategory extends Model
 {
-    use HasCompany;
-
     protected $guarded = [];
 
     protected function casts(): array
     {
         return [
-            'status' => 'boolean',
+            'status' => 'integer',
         ];
     }
 
     public function products(): HasMany
     {
-        return $this->hasMany(Product::class);
+        return $this->hasMany(Product::class, 'category_id');
     }
 }

@@ -13,7 +13,9 @@ class UnitResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'code' => $this->code,
-            'status' => $this->status,
+            'is_base_unit' => (bool) $this->is_base_unit,
+            'status' => (int) $this->status,
+            'status_label' => \getStatus($this->status),
             'created_at' => $this->created_at?->toDateTimeString(),
             'updated_at' => $this->updated_at?->toDateTimeString(),
         ];

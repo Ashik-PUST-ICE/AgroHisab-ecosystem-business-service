@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\V1\Business\Unit;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Business\Product\UnitResource;
 use App\Http\Requests\Business\Product\UnitRequest;
+use App\Http\Resources\Business\Product\UnitResource;
 use App\Models\Business\Unit;
 use App\Services\Applications\Api\ApiResponse;
 use App\Services\Business\Product\UnitService;
@@ -17,9 +17,9 @@ class UnitController extends Controller
     public function index(Request $request)
     {
         return $this->handleRequest(function () use ($request) {
-            $units = $this->unitService->index($request->only(['search', 'per_page']));
+            $units = $this->unitService->index($request->only(['search', 'status', 'per_page']));
 
-            return ApiResponse::success($units, 'Units retrieved successfully');
+            return ApiResponse::success(UnitResource::collection($units), 'Units retrieved successfully');
         });
     }
 

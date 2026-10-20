@@ -10,26 +10,37 @@ class ProductService
     public function index(array $filters): LengthAwarePaginator
     {
         return Product::query()
-            ->when($filters['search'] ?? null, fn($q, $search) => $q->where('name', 'like', "%{$search}%"))
+            ->with(['category', 'defaultUnit'])
+            ->when($filters['search'] ?? null, function ($q, $search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%")
+                        ->orWhere('variety', 'like', "%{$search}%");
+                });
+            })
+            ->when(isset($filters['category_id']), fn($q) => $q->where('category_id', $filters['category_id']))
+            ->when(isset($filters['status']), fn($q) => $q->where('status', $filters['status']))
             ->latest()
             ->paginate($filters['per_page'] ?? 15);
     }
 
     public function store(array $data): Product
     {
-        return Product::create($data);
+        if (function_exists('authId') && authId()) {
+            $data['created_by'] = authId();
+        }
+        $product = Product::create($data);
+        return $product->load(['category', 'defaultUnit']);
     }
 
     public function show(Product $product): Product
     {
-        return $product;
+        return $product->load(['category', 'defaultUnit']);
     }
 
     public function update(Product $product, array $data): Product
     {
         $product->update($data);
-
-        return $product;
+        return $product->load(['category', 'defaultUnit']);
     }
 
     public function destroy(Product $product): void

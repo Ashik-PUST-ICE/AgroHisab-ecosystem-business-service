@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\V1\Business;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Business\Product\ProductResource;
 use App\Http\Requests\Business\Product\ProductRequest;
+use App\Http\Resources\Business\Product\ProductResource;
 use App\Models\Business\Product;
 use App\Services\Applications\Api\ApiResponse;
 use App\Services\Business\Product\ProductService;
@@ -17,9 +17,9 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         return $this->handleRequest(function () use ($request) {
-            $products = $this->productService->index($request->only(['search', 'per_page']));
+            $products = $this->productService->index($request->only(['search', 'category_id', 'status', 'per_page']));
 
-            return ApiResponse::success($products, 'Products retrieved successfully');
+            return ApiResponse::success(ProductResource::collection($products), 'Products retrieved successfully');
         });
     }
 

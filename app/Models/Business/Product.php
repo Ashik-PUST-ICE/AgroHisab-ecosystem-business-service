@@ -2,37 +2,27 @@
 
 namespace App\Models\Business;
 
-use App\Models\Traits\HasCompany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
-    use HasCompany;
-
     protected $guarded = [];
 
     protected function casts(): array
     {
         return [
-            'status' => 'boolean',
-            'price' => 'integer',
+            'status' => 'integer',
         ];
     }
 
     public function category(): BelongsTo
     {
-        return $this->belongsTo(ProductCategory::class);
+        return $this->belongsTo(ProductCategory::class, 'category_id');
     }
 
-    public function orderItems(): HasMany
+    public function defaultUnit(): BelongsTo
     {
-        return $this->hasMany(OrderItem::class);
-    }
-
-    public function visitProducts(): HasMany
-    {
-        return $this->hasMany(VisitProduct::class);
+        return $this->belongsTo(Unit::class, 'default_unit_id');
     }
 }

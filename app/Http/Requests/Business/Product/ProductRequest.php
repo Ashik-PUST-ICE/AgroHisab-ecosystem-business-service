@@ -18,12 +18,10 @@ class ProductRequest extends FormRequest
 
         return [
             'name' => [$isUpdate ? 'sometimes' : 'required', 'string', 'max:255'],
-            'code' => ['nullable', 'string', 'max:255'],
-            'sku' => ['nullable', 'string', 'max:255'],
-            'category_id' => ['nullable', 'exists:product_categories,id'],
-            'unit_id' => ['nullable', 'integer'],
+            'variety' => ['nullable', 'string', 'max:100'],
+            'category_id' => ['nullable', 'integer', 'exists:product_categories,id'],
+            'default_unit_id' => ['nullable', 'integer', 'exists:units,id'],
             'description' => ['nullable', 'string'],
-            'price' => ['nullable', 'numeric', 'min:0'],
             'status' => ['nullable', 'in:0,1'],
         ];
     }

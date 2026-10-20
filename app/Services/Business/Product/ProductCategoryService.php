@@ -11,12 +11,16 @@ class ProductCategoryService
     {
         return ProductCategory::query()
             ->when($filters['search'] ?? null, fn($q, $search) => $q->where('name', 'like', "%{$search}%"))
+            ->when(isset($filters['status']), fn($q) => $q->where('status', $filters['status']))
             ->latest()
             ->paginate($filters['per_page'] ?? 15);
     }
 
     public function store(array $data): ProductCategory
     {
+        if (function_exists('authId') && authId()) {
+            $data['created_by'] = authId();
+        }
         return ProductCategory::create($data);
     }
 

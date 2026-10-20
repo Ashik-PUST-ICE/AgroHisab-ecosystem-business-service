@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/constants.php';
+
+
 if (! function_exists('authId')) {
     function authId(): ?int
     {

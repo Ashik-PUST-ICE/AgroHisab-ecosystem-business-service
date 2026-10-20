@@ -12,9 +12,9 @@ class ProductCategoryResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'code' => $this->code,
             'description' => $this->description,
-            'status' => $this->status,
+            'status' => (int) $this->status,
+            'status_label' => \getStatus($this->status),
             'created_at' => $this->created_at?->toDateTimeString(),
             'updated_at' => $this->updated_at?->toDateTimeString(),
         ];
