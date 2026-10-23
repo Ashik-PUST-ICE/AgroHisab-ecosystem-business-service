@@ -21,6 +21,7 @@ class SupplierService
 
     public function store(array $data): Supplier
     {
+        $data['status'] = $data['status'] ?? STATUS_ACTIVE;
         $data['created_by'] = authId();
 
         return Supplier::create($data);

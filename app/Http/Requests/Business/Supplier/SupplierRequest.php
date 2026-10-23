@@ -4,6 +4,7 @@ namespace App\Http\Requests\Business\Supplier;
 
 use App\Models\Business\Supplier;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class SupplierRequest extends FormRequest
 {
@@ -23,7 +24,7 @@ class SupplierRequest extends FormRequest
             'market'   => ['nullable', 'string', 'max:255'],
             'district' => ['nullable', 'string', 'max:100'],
             'notes'    => ['nullable', 'string'],
-            'status'   => ['nullable', 'in:' . STATUS_ACTIVE . ',' . STATUS_INACTIVE],
+            'status'   => ['nullable', 'integer', Rule::in(ACTIVE_INACTIVE_STATUSES)],
         ];
     }
 }

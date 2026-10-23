@@ -19,6 +19,10 @@ const STATUS_CANCELLED = 2;
 const STATUS_REFUND = 6;
 const STATUS_INACTIVE = 0;
 
+// Status values accepted by active/inactive business records.
+// Keep this as an array so Laravel validation can use Rule::in().
+const ACTIVE_INACTIVE_STATUSES = [STATUS_ACTIVE, STATUS_INACTIVE];
+
 // User Role Type
 const USER_STATUS_ACTIVE = 1;
 const USER_STATUS_INACTIVE = 0;

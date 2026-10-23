@@ -4,6 +4,7 @@ namespace App\Http\Requests\Business\Aratdar;
 
 use App\Models\Business\Aratdar;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class AratdarRequest extends FormRequest
 {
@@ -29,7 +30,7 @@ class AratdarRequest extends FormRequest
             'commission_type'  => ['nullable', 'in:' . COMMISSION_TYPE_PERCENTAGE . ',' . COMMISSION_TYPE_FIXED],
             'commission_value' => ['nullable', 'numeric', 'min:0'],
             'commission_base'  => ['nullable', 'in:gross_sales,net_sales'],
-            'status'           => ['nullable', 'in:' . STATUS_ACTIVE . ',' . STATUS_INACTIVE],
+            'status'           => ['nullable', 'integer', Rule::in(ACTIVE_INACTIVE_STATUSES)],
         ];
     }
 }

@@ -23,6 +23,7 @@ class AratdarService
 
     public function store(array $data): Aratdar
     {
+        $data['status'] = $data['status'] ?? STATUS_ACTIVE;
         $data['created_by'] = authId();
 
         return Aratdar::create($data);
